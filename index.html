@@ -9,6 +9,13 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script>
+  // no-FOUC theme
+  try {
+    var t = localStorage.getItem('handbook-theme');
+    if (t) document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,86 +24,208 @@
     --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
     --line:#d7e0e8; --line-soft:#e5ebf1;
     --accent:#3a5a78; --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --accent-soft:#e1e9f0;
+    --focus:#3a5a78;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#9aacbd;
       --line:#2a3b4c; --line-soft:#1c2838;
       --accent:#7ba6cc; --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --accent-soft:#1c2d3d;
+      --focus:#7ba6cc;
     }
   }
   :root[data-theme="dark"]{
-    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#9aacbd;
     --line:#2a3b4c; --line-soft:#1c2838;
     --accent:#7ba6cc; --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --accent-soft:#1c2d3d;
+    --focus:#7ba6cc;
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;}
   a{color:var(--accent);}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2{text-wrap:balance;}
 
-  header{padding:48px 24px 36px;border-bottom:1px solid var(--line);}
   .wrap{max-width:900px;margin:0 auto;padding:0 24px;}
-  header .eyebrow{
-    font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;
-    color:var(--accent);margin:0 0 10px;
-  }
-  header h1{font-size:2.2rem;margin:0 0 10px;text-wrap:balance;}
-  header p{color:var(--muted);font-size:1.02rem;max-width:60ch;margin:0;}
 
-  main{max-width:900px;margin:0 auto;padding:36px 24px 80px;}
+  header{padding:28px 0;border-bottom:1px solid var(--line);}
+  .top-row{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .mark{
+    width:38px;height:38px;flex:none;border-radius:10px;background:var(--accent-fill);color:#fff;
+    display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:1.1rem;
+  }
+  .brand .name{font-weight:600;font-size:1.05rem;}
+  .theme-btn{
+    border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:8px;
+    padding:8px 14px;font-size:.85rem;font-family:"IBM Plex Sans",sans-serif;cursor:pointer;line-height:1;
+  }
+  .theme-btn:hover{color:var(--accent);border-color:var(--accent);}
+
+  .intro{padding:40px 0 8px;}
+  .intro .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 12px;
+  }
+  .intro h1{font-size:2.3rem;margin:0 0 12px;line-height:1.2;}
+  .intro p{color:var(--muted);font-size:1.05rem;max-width:62ch;margin:0;}
+
+  main{max-width:900px;margin:0 auto;padding:28px 24px 80px;}
+
+  .search-row{margin:8px 0 32px;}
+  .search-box{position:relative;max-width:420px;}
+  .search-box svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .search-box input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.95rem;padding:12px 16px 12px 42px;
+    border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);
+  }
+  .search-box input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .search-count{margin-top:8px;font-size:.82rem;color:var(--muted);}
+
   .section-label{
-    font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--muted);margin:0 0 16px;
+    font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 16px;display:flex;align-items:center;gap:10px;
   }
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .section-label::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;}
   .card{
-    display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);
-    border-radius:12px;padding:22px 24px;text-decoration:none;color:var(--ink);
-    transition:border-color .15s,transform .15s;
+    display:flex;flex-direction:column;gap:9px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:24px 26px;text-decoration:none;color:var(--ink);
+    transition:border-color .15s,transform .15s,box-shadow .15s;
   }
-  .card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08);}
   .card .tag{
-    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
     color:var(--accent);
   }
-  .card h2{font-size:1.25rem;margin:2px 0 0;}
-  .card p{color:var(--muted);font-size:.9rem;margin:0;}
-  .card .open{margin-top:8px;font-size:.82rem;font-weight:600;color:var(--accent);}
+  .card h2{font-size:1.3rem;margin:2px 0 0;line-height:1.3;}
+  .card p{color:var(--muted);font-size:.92rem;line-height:1.55;margin:0;}
+  .card .open{margin-top:6px;font-size:.84rem;font-weight:600;color:var(--accent);}
   .card .open::after{content:" \2192";}
 
-  .empty-note{color:var(--muted);font-size:.9rem;margin-top:24px;padding:16px 20px;border:1px dashed var(--line);border-radius:10px;}
+  .empty-note, .no-results{
+    color:var(--muted);font-size:.92rem;margin-top:8px;padding:28px 20px;border:1px dashed var(--line);
+    border-radius:12px;text-align:center;
+  }
+  .no-results{display:none;}
 
-  footer{border-top:1px solid var(--line);padding:20px 24px;text-align:center;color:var(--muted);font-size:.82rem;}
+  footer{border-top:1px solid var(--line);padding:22px 24px;text-align:center;color:var(--muted);font-size:.82rem;}
+
+  @media (max-width:560px){
+    .intro h1{font-size:1.85rem;}
+    .brand .name{display:none;}
+  }
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap">
-    <p class="eyebrow">Technical Reference</p>
-    <h1>Karthik's Handbook</h1>
-    <p>A growing collection of deep-dive tutorials and field references — pick a subject below.</p>
+    <div class="top-row">
+      <div class="brand">
+        <div class="mark">K</div>
+        <div class="name">Karthik's Handbook</div>
+      </div>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch theme">&#9681; Theme</button>
+    </div>
   </div>
 </header>
 
+<div class="wrap intro">
+  <p class="eyebrow">Technical Reference</p>
+  <h1>Karthik's Handbook</h1>
+  <p>A growing collection of deep-dive tutorials and field references, each one covering a subject from the basics through to advanced, practical detail — pick one below, or search across titles and topics.</p>
+</div>
+
 <main>
-  <p class="section-label">Subjects</p>
-  <div class="grid">
-    <a class="card" href="subjects/modbus-rtu-tcp.html">
-      <span class="tag">Industrial Protocols</span>
-      <h2>Modbus RTU/TCP</h2>
-      <p>Basic-to-advanced tutorial with frame structure, CRC/LRC, timing, vendor quirks, a protocol comparison, practice exercises, and a live toolkit (frame builder/analyzer, register decoder, timing calculator, field troubleshooting checklists).</p>
-      <span class="open">Open</span>
-    </a>
+  <div class="search-row">
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="search-input" placeholder="Search subjects..." autocomplete="off">
+    </div>
+    <p class="search-count" id="search-count"></p>
   </div>
 
-  <p class="empty-note">More subjects will appear here as they're added.</p>
+  <p class="section-label">Subjects</p>
+  <div class="grid" id="subject-grid"></div>
+  <p class="no-results" id="no-results">No subjects match your search.</p>
+  <p class="empty-note" id="empty-note">More subjects will appear here as they're added.</p>
 </main>
 
 <footer>Karthik's Handbook</footer>
 
 <script>
+  // ---------- Subject data (add new subjects here) ----------
+  var SUBJECTS = [
+    {
+      tag: "Industrial Protocols",
+      title: "Modbus RTU/TCP",
+      href: "subjects/modbus-rtu-tcp.html",
+      description: "Basic-to-advanced tutorial with frame structure, CRC/LRC, timing, vendor quirks, a protocol comparison, practice exercises, and a live toolkit (frame builder/analyzer, register decoder, timing calculator, field troubleshooting checklists)."
+    }
+  ];
+
+  // ---------- Theme toggle (system -> light -> dark -> system) ----------
+  (function () {
+    var btn = document.getElementById('themeBtn');
+    var root = document.documentElement;
+    var order = ['', 'light', 'dark'];
+    var label = { '': '◑ Theme', 'light': '☀ Light', 'dark': '☾ Dark' };
+    function cur() {
+      try { return localStorage.getItem('handbook-theme') || ''; } catch (e) { return ''; }
+    }
+    function apply(v) {
+      if (v) root.setAttribute('data-theme', v);
+      else root.removeAttribute('data-theme');
+      btn.innerHTML = label[v];
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', v === 'dark' ? '#0e1620' : '#3a5a78');
+      try { v ? localStorage.setItem('handbook-theme', v) : localStorage.removeItem('handbook-theme'); } catch (e) {}
+    }
+    apply(cur());
+    btn.addEventListener('click', function () {
+      var i = order.indexOf(cur());
+      apply(order[(i + 1) % order.length]);
+    });
+  })();
+
+  // ---------- Render + search ----------
+  var grid = document.getElementById('subject-grid');
+  var noResults = document.getElementById('no-results');
+  var emptyNote = document.getElementById('empty-note');
+  var searchCount = document.getElementById('search-count');
+  var searchInput = document.getElementById('search-input');
+
+  function renderCards(list) {
+    grid.innerHTML = '';
+    list.forEach(function (s) {
+      var a = document.createElement('a');
+      a.className = 'card';
+      a.href = s.href;
+      a.innerHTML =
+        '<span class="tag">' + s.tag + '</span>' +
+        '<h2>' + s.title + '</h2>' +
+        '<p>' + s.description + '</p>' +
+        '<span class="open">Open</span>';
+      grid.appendChild(a);
+    });
+  }
+
+  function applySearch() {
+    var q = searchInput.value.trim().toLowerCase();
+    var filtered = !q ? SUBJECTS : SUBJECTS.filter(function (s) {
+      return (s.title + ' ' + s.tag + ' ' + s.description).toLowerCase().indexOf(q) !== -1;
+    });
+    renderCards(filtered);
+    noResults.style.display = (q && filtered.length === 0) ? 'block' : 'none';
+    emptyNote.style.display = (!q && SUBJECTS.length < 4) ? 'block' : 'none';
+    searchCount.textContent = q ? (filtered.length + ' of ' + SUBJECTS.length + ' subjects match') : '';
+  }
+
+  searchInput.addEventListener('input', applySearch);
+  applySearch();
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function () {});
