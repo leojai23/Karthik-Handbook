@@ -1,0 +1,1537 @@
+<title>Modbus RTU/TCP Tutorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --rtu:#b3701f; --rtu-soft:#f6ead5; --rtu-ink:#7a4c12;
+    --tcp:#1f7a8c; --tcp-soft:#dcedf0; --tcp-ink:#145561;
+    --code-bg:#121b24; --code-ink:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --rtu:#e0a04a; --rtu-soft:#332410; --rtu-ink:#f2cd94;
+      --tcp:#4fc0d4; --tcp-soft:#0f2b30; --tcp-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-ink:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --rtu:#e0a04a; --rtu-soft:#332410; --rtu-ink:#f2cd94;
+    --tcp:#4fc0d4; --tcp-soft:#0f2b30; --tcp-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-ink:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .proto{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.rtu-link{border-left:3px solid var(--rtu);padding-left:9px;}
+  nav.side a.tcp-link{border-left:3px solid var(--tcp);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner.extension{background:var(--line-soft);color:var(--muted);}
+  .level-banner .n{font-size:1.1rem;}
+
+  .ladder{
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin:16px 0;
+    font-family:"IBM Plex Mono",monospace;font-size:.82rem;overflow-x:auto;
+  }
+  .ladder .rung{display:flex;align-items:center;gap:0;padding:14px 0;border-bottom:1px dashed var(--line);white-space:nowrap;}
+  .ladder .rung:last-child{border-bottom:none;}
+  .ladder .rail{color:var(--line);font-weight:700;}
+  .ladder .contact{border:2px solid var(--ink);border-left:none;border-right:none;padding:4px 14px;margin:0 6px;}
+  .ladder .contact.closed::before{content:"\2014\2014";}
+  .ladder .block{border:2px solid var(--accent);color:var(--accent-ink);background:var(--accent-soft);padding:6px 12px;margin:0 10px;border-radius:3px;}
+  .ladder .coil{border:2px solid var(--ink);border-radius:50%;padding:4px 12px;margin:0 6px;}
+  .ladder .wire{flex:1;border-top:2px solid var(--ink);min-width:24px;}
+  .ladder .rung-label{display:block;color:var(--muted);font-size:.72rem;margin-bottom:4px;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .proto-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .proto-box.rtu{border-left-color:var(--rtu);}
+  .proto-box.tcp{border-left-color:var(--tcp);}
+  .proto-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .proto-box.rtu .tag{background:var(--rtu-soft);color:var(--rtu-ink);}
+  .proto-box.tcp .tag{background:var(--tcp-soft);color:var(--tcp-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .frame{display:flex;flex-wrap:wrap;gap:0;margin:18px 0;font-family:"IBM Plex Mono",monospace;font-size:.78rem;}
+  .frame .byte{
+    border:1px solid var(--line);padding:8px 10px;text-align:center;min-width:64px;background:var(--panel);
+  }
+  .frame .byte .b-label{display:block;font-weight:600;}
+  .frame .byte .b-size{display:block;color:var(--muted);font-size:.7rem;margin-top:3px;}
+  .frame .byte.rtu-part{background:var(--rtu-soft);border-color:var(--rtu);}
+  .frame .byte.tcp-part{background:var(--tcp-soft);border-color:var(--tcp);}
+  .frame .byte.shared-part{background:var(--accent-soft);border-color:var(--accent);}
+
+  .bus-diagram{margin:18px 0;}
+  .bus-diagram svg{width:100%;height:auto;display:block;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .mode-toggle{display:flex;gap:8px;margin-bottom:4px;}
+  .mode-toggle button{
+    font-family:"IBM Plex Mono",monospace;font-size:.8rem;font-weight:600;padding:7px 16px;border-radius:999px;
+    border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer;
+  }
+  .mode-toggle button.active{background:var(--accent-fill);border-color:var(--accent-fill);color:#fff;}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-btn.secondary{background:var(--line-soft);color:var(--ink);border:1px solid var(--line);}
+  .tool-output{margin-top:18px;}
+  .tool-output .hexline{
+    font-family:"IBM Plex Mono",monospace;font-size:1rem;background:var(--code-bg);color:var(--code-ink);
+    padding:14px 16px;border-radius:8px;word-break:break-all;letter-spacing:.02em;
+  }
+  .tool-output .frame{margin-top:14px;}
+  .tool-error{color:var(--warn);font-size:.85rem;margin-top:8px;font-family:"IBM Plex Mono",monospace;}
+  .checksum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:14px;}
+  .checksum-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .checksum-card .cs-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .checksum-card .cs-value{font-family:"IBM Plex Mono",monospace;font-size:1.05rem;font-weight:600;margin-top:4px;}
+
+  .checklist{list-style:none;margin:16px 0;padding:0;counter-reset:step;}
+  .checklist li{
+    display:flex;align-items:flex-start;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);
+    counter-increment:step;
+  }
+  .checklist li:last-child{border-bottom:none;}
+  .checklist li::before{
+    content:counter(step);flex:none;width:26px;height:26px;border-radius:50%;background:var(--line-soft);
+    color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:600;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;
+  }
+  .checklist li.done::before{background:var(--good-fill);color:#fff;content:"\2713";}
+  .checklist .step-body{flex:1;}
+  .checklist .step-body p{margin:0;}
+  .checklist .step-title{font-weight:600;cursor:pointer;}
+  .checklist li.done .step-title{color:var(--muted);text-decoration:line-through;}
+  .checklist .step-detail{color:var(--muted);font-size:.9rem;margin-top:4px !important;}
+  .checklist input[type="checkbox"]{display:none;}
+
+  .decoder-result{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px;}
+
+  .status-badge{
+    display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;font-size:.75rem;
+    font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 10px;border-radius:999px;
+  }
+  .status-badge.ok{background:var(--good-soft);color:var(--good);}
+  .status-badge.bad{background:var(--warn-soft);color:var(--warn);}
+  .field-list{margin-top:16px;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .field-row{display:flex;gap:14px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:center;}
+  .field-row:last-child{border-bottom:none;}
+  .field-row:nth-child(even){background:var(--line-soft);}
+  .field-row .f-name{flex:0 0 170px;font-family:"IBM Plex Mono",monospace;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .field-row .f-value{font-family:"IBM Plex Mono",monospace;font-size:.92rem;flex:1;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">Modbus RTU/TCP<span class="proto">Basic &rarr; Advanced</span></p>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#frame-tool">Frame Builder &amp; Checksum Calculator</a>
+      <a href="#frame-analyzer">Frame Analyzer</a>
+      <a href="#float-decoder">Register Value Decoder</a>
+      <a href="#timing-calc">Baud Rate Timing Calculator</a>
+      <a href="#troubleshooting">Troubleshooting Checklist</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a href="#what-is-modbus">What Is Modbus</a>
+      <a href="#master-slave">Master &amp; Slave Roles</a>
+      <a href="#rtu-vs-tcp">RTU vs TCP at a Glance</a>
+      <a href="#data-model">The Data Model</a>
+      <a href="#function-codes-basic">Function Codes, Briefly</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="rtu-link" href="#rtu-frame">RTU Frame Structure</a>
+      <a class="tcp-link" href="#tcp-frame">TCP Frame (MBAP)</a>
+      <a href="#register-addressing">Register Addressing</a>
+      <a href="#function-code-table">Function Code Reference</a>
+      <a href="#exceptions">Exception Responses</a>
+      <a class="rtu-link" href="#rs485-wiring">RS-485 Wiring Basics</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced</p>
+      <a class="rtu-link" href="#crc16">CRC-16 Calculation</a>
+      <a class="rtu-link" href="#rtu-timing">RTU Frame Timing</a>
+      <a href="#rtu-over-tcp">RTU-over-TCP vs Native TCP</a>
+      <a href="#gateways">Gateways &amp; Unit IDs</a>
+      <a href="#endianness">Endianness Pitfalls</a>
+      <a href="#security">Security Considerations</a>
+      <a href="#tools">Tools &amp; Debugging</a>
+      <a href="#code-example">Code Example (Python)</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Extensions</p>
+      <a class="rtu-link" href="#ascii-mode">Modbus ASCII Mode</a>
+      <a href="#ladder-logic">Ladder Logic Integration</a>
+      <a href="#vendor-quirks">Vendor Quirks</a>
+      <a class="rtu-link" href="#diagnostics">Diagnostic Function Code (0x08)</a>
+      <a href="#protocol-comparison">Modbus vs. Other Protocols</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Industrial Protocol Tutorial</p>
+      <h1>Modbus RTU/TCP</h1>
+      <p class="lede">A guided path from "what is this protocol" to the timing, CRC, and byte-order details that actually bite you in the field. Copper-tagged sections are RTU-specific, teal-tagged sections are TCP-specific — everything else applies to both.</p>
+    </header>
+
+    <section class="topic" id="frame-tool">
+      <h2>Frame Builder &amp; Checksum Calculator</h2>
+      <p>Build a valid frame for any of the three transports, or paste bytes from a captured frame to check its CRC-16/LRC. Everything runs locally in your browser — nothing is sent anywhere.</p>
+
+      <div class="tool-panel">
+        <h3>Build a Frame</h3>
+        <div class="mode-toggle" role="group" aria-label="Frame mode">
+          <button type="button" class="mode-btn active" data-mode="rtu">RTU</button>
+          <button type="button" class="mode-btn" data-mode="ascii">ASCII</button>
+          <button type="button" class="mode-btn" data-mode="tcp">TCP</button>
+        </div>
+
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="bf-addr">Slave / Unit ID (0&ndash;255)</label>
+            <input type="text" id="bf-addr" value="17" inputmode="numeric">
+          </div>
+          <div class="tool-field">
+            <label for="bf-fc">Function Code</label>
+            <select id="bf-fc">
+              <option value="01">0x01 &mdash; Read Coils</option>
+              <option value="02">0x02 &mdash; Read Discrete Inputs</option>
+              <option value="03" selected>0x03 &mdash; Read Holding Registers</option>
+              <option value="04">0x04 &mdash; Read Input Registers</option>
+              <option value="05">0x05 &mdash; Write Single Coil</option>
+              <option value="06">0x06 &mdash; Write Single Register</option>
+              <option value="0F">0x0F &mdash; Write Multiple Coils</option>
+              <option value="10">0x10 &mdash; Write Multiple Registers</option>
+            </select>
+          </div>
+          <div class="tool-field" id="bf-txn-field" style="display:none;">
+            <label for="bf-txn">Transaction ID (TCP only)</label>
+            <input type="text" id="bf-txn" value="0001">
+          </div>
+        </div>
+
+        <div class="tool-row">
+          <div class="tool-field wide">
+            <label for="bf-data">Data Bytes (hex, space-separated &mdash; e.g. the start address + quantity)</label>
+            <input type="text" id="bf-data" value="00 00 00 02">
+          </div>
+        </div>
+
+        <button type="button" class="tool-btn" id="bf-build">Build Frame</button>
+
+        <div class="tool-output" id="bf-output" style="display:none;">
+          <div class="hexline" id="bf-hex"></div>
+          <div class="frame" id="bf-breakdown"></div>
+        </div>
+        <div class="tool-error" id="bf-error"></div>
+      </div>
+
+      <div class="tool-panel">
+        <h3>Calculate Checksum From Raw Bytes</h3>
+        <p style="margin-top:0;color:var(--muted);font-size:.9rem;">Paste the frame bytes <em>without</em> the trailing checksum (address through the last data byte) — this computes what the CRC-16 and LRC <em>should</em> be, so you can compare against what you captured.</p>
+        <div class="tool-row">
+          <div class="tool-field wide">
+            <label for="cs-input">Bytes (hex, space-separated)</label>
+            <input type="text" id="cs-input" value="11 03 00 6B 00 03">
+          </div>
+        </div>
+        <button type="button" class="tool-btn secondary" id="cs-calc">Calculate</button>
+        <div class="tool-error" id="cs-error"></div>
+        <div class="checksum-grid" id="cs-output" style="display:none;">
+          <div class="checksum-card">
+            <div class="cs-label">CRC-16 (RTU), as transmitted</div>
+            <div class="cs-value" id="cs-crc"></div>
+          </div>
+          <div class="checksum-card">
+            <div class="cs-label">LRC (ASCII mode)</div>
+            <div class="cs-value" id="cs-lrc"></div>
+          </div>
+          <div class="checksum-card">
+            <div class="cs-label">Full RTU frame (bytes + CRC)</div>
+            <div class="cs-value" id="cs-full"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="topic" id="frame-analyzer">
+      <h2>Frame Analyzer</h2>
+      <p>The mirror image of the Frame Builder: paste a captured frame and this decodes every field and checks the CRC/LRC for you. ASCII mode (leading <code>:</code>) is detected automatically; RTU and TCP frames can look identical for short requests, so pick which one you captured rather than risk a wrong guess.</p>
+
+      <div class="tool-panel">
+        <div class="mode-toggle" role="group" aria-label="Analyzer mode">
+          <button type="button" class="an-mode-btn active" data-mode="rtu">RTU</button>
+          <button type="button" class="an-mode-btn" data-mode="tcp">TCP</button>
+        </div>
+        <p style="margin:4px 0 14px;color:var(--muted);font-size:.85rem;">(Paste a frame starting with <code>:</code> to analyze it as ASCII mode regardless of this toggle.)</p>
+        <div class="tool-row">
+          <div class="tool-field wide">
+            <label for="an-input">Captured Frame (hex bytes space-separated, or <code>:...</code> for ASCII mode)</label>
+            <input type="text" id="an-input" value="11 03 00 6B 00 03 76 87">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="an-run">Analyze</button>
+        <div class="tool-error" id="an-error"></div>
+
+        <div id="an-output" style="display:none;">
+          <p style="margin:14px 0 0;">
+            <span class="status-badge" id="an-mode-badge"></span>
+            <span class="status-badge" id="an-check-badge" style="margin-left:8px;"></span>
+          </p>
+          <div class="field-list" id="an-fields"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="topic" id="float-decoder">
+      <h2>Register Value Decoder</h2>
+      <p>Paste the two 16-bit register values you read back (as hex) and pick the byte order to decode a 32-bit float or unsigned integer — the direct fix for the Endianness Pitfalls problem, without doing the byte-swapping by hand.</p>
+
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="dec-reg1">Register 1 (hex, first register read)</label>
+            <input type="text" id="dec-reg1" value="4049">
+          </div>
+          <div class="tool-field">
+            <label for="dec-reg2">Register 2 (hex, second register read)</label>
+            <input type="text" id="dec-reg2" value="0FDB">
+          </div>
+          <div class="tool-field">
+            <label for="dec-order">Byte Order</label>
+            <select id="dec-order">
+              <option value="ABCD" selected>ABCD &mdash; Big-endian (standard)</option>
+              <option value="DCBA">DCBA &mdash; Little-endian</option>
+              <option value="BADC">BADC &mdash; Byte-swapped</option>
+              <option value="CDAB">CDAB &mdash; Word-swapped</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="dec-run">Decode</button>
+        <div class="tool-error" id="dec-error"></div>
+        <div class="decoder-result" id="dec-output" style="display:none;">
+          <div class="checksum-card">
+            <div class="cs-label">As IEEE-754 Float</div>
+            <div class="cs-value" id="dec-float"></div>
+          </div>
+          <div class="checksum-card">
+            <div class="cs-label">As Unsigned 32-bit Integer</div>
+            <div class="cs-value" id="dec-uint"></div>
+          </div>
+          <div class="checksum-card">
+            <div class="cs-label">Reordered Byte Sequence</div>
+            <div class="cs-value" id="dec-bytes"></div>
+          </div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:.88rem;">Defaults decode to <strong>&pi; (3.14159265&hellip;)</strong> in ABCD order — a well-known bit pattern, handy for confirming the tool works before trying your own captured values. If your value looks wrong, the fastest fix is usually to just try the other three orders in turn; most vendors use one of these four.</p>
+    </section>
+
+    <section class="topic" id="timing-calc">
+      <div class="proto-box rtu">
+        <span class="tag">RTU</span>
+        <h2>Baud Rate Timing Calculator</h2>
+        <p>Turns the RTU Frame Timing rules into actual milliseconds for your link, so you can set a master's inter-frame and response timeouts with real numbers instead of guessing.</p>
+
+        <div class="tool-panel">
+          <div class="tool-row">
+            <div class="tool-field">
+              <label for="tm-baud">Baud Rate</label>
+              <select id="tm-baud">
+                <option value="1200">1200</option>
+                <option value="2400">2400</option>
+                <option value="4800">4800</option>
+                <option value="9600" selected>9600</option>
+                <option value="19200">19200</option>
+                <option value="38400">38400</option>
+                <option value="57600">57600</option>
+                <option value="115200">115200</option>
+              </select>
+            </div>
+            <div class="tool-field">
+              <label for="tm-parity">Parity</label>
+              <select id="tm-parity">
+                <option value="none">None (2 stop bits)</option>
+                <option value="even" selected>Even (1 stop bit)</option>
+                <option value="odd">Odd (1 stop bit)</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" class="tool-btn" id="tm-run">Calculate</button>
+          <div class="decoder-result" id="tm-output" style="margin-top:16px;">
+            <div class="checksum-card">
+              <div class="cs-label">Bits per character</div>
+              <div class="cs-value" id="tm-bits"></div>
+            </div>
+            <div class="checksum-card">
+              <div class="cs-label">Character time</div>
+              <div class="cs-value" id="tm-chartime"></div>
+            </div>
+            <div class="checksum-card">
+              <div class="cs-label">Inter-frame gap (3.5 char)</div>
+              <div class="cs-value" id="tm-frame-gap"></div>
+            </div>
+            <div class="checksum-card">
+              <div class="cs-label">Inter-character timeout (1.5 char)</div>
+              <div class="cs-value" id="tm-char-gap"></div>
+            </div>
+          </div>
+          <p class="tool-error" id="tm-note" style="color:var(--muted);"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="topic" id="troubleshooting">
+      <h2>Field Troubleshooting Checklist</h2>
+      <p>Work down the relevant list in order — each step rules something out before you move to the next. Click a step to mark it checked as you go.</p>
+
+      <div class="proto-box rtu">
+        <span class="tag">RTU</span>
+        <h3 style="margin-top:4px;">Slave Not Responding (Serial)</h3>
+        <ul class="checklist" id="checklist-rtu">
+          <li><div class="step-body"><p class="step-title">Is the slave powered on?</p><p class="step-detail">Check for a power/status LED on the device, and verify supply voltage at its terminals.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Are the A/B (D+/D&minus;) wires swapped?</p><p class="step-detail">The single most common RS-485 fault. Swap them and retest if you're not certain they're correct.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Is the bus terminated correctly?</p><p class="step-detail">120&#937; resistors at the two physical ends of the bus only — missing termination or terminating every device both cause problems.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Is there a common ground/reference between devices?</p><p class="step-detail">Especially important when devices have separate power supplies — a floating reference causes intermittent or garbled communication.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Do serial parameters match exactly?</p><p class="step-detail">Baud rate, parity, data bits, and stop bits must match on both master and slave &mdash; a single mismatch (e.g. even vs. no parity) looks identical to a dead device.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Is the slave address correct?</p><p class="step-detail">Check the device's configured ID (DIP switches or a config menu) against what your master is actually requesting.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Do both ends agree on RTU vs. ASCII mode?</p><p class="step-detail">Mismatched framing mode produces line noise, not a clean error.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Run a Diagnostics loopback test (FC 0x08)</p><p class="step-detail">If the device won't even echo a loopback request, the fault is physical-layer, not application-level. See the Diagnostic Function Code section above.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Retest with a known-good master tool</p><p class="step-detail">Try ModScan, QModMaster, or modpoll instead of your own application, to rule out a bug in your code versus a device/wiring fault.</p></div></li>
+        </ul>
+      </div>
+
+      <div class="proto-box tcp">
+        <span class="tag">TCP</span>
+        <h3 style="margin-top:4px;">Slave Not Responding (Ethernet)</h3>
+        <ul class="checklist" id="checklist-tcp">
+          <li><div class="step-body"><p class="step-title">Can you ping the device's IP address?</p><p class="step-detail">Confirms basic network reachability before even trying Modbus.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Is port 502 open?</p><p class="step-detail">Check for a firewall (on either end, or a switch ACL) blocking TCP port 502 specifically, even though ping succeeds.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Is the Unit ID correct?</p><p class="step-detail">If you're going through a gateway to RTU slaves behind it, the IP gets you to the gateway &mdash; the Unit ID still has to match the actual slave on the serial side.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Is something else already holding the connection?</p><p class="step-detail">Many simple Modbus TCP slaves only accept one (or a small, fixed number of) concurrent connections &mdash; a second master, or a stale unclosed connection from a crashed client, can lock everyone else out.</p></div></li>
+          <li><div class="step-body"><p class="step-title">Is it actually MBAP-framed TCP, or RTU-over-TCP?</p><p class="step-detail">See RTU-over-TCP vs. Native Modbus TCP above &mdash; a cheap serial-to-Ethernet converter may be tunneling raw RTU bytes (with a CRC) rather than real MBAP framing.</p></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="what-is-modbus">
+      <h2>What Is Modbus?</h2>
+      <p>Modbus is a messaging protocol for exchanging data between industrial devices — PLCs, sensors, drives, meters, HMIs. Modicon published it in 1979 for its own PLCs; because the specification was open and simple to implement, it became a de facto standard that outlived the company that created it. Today it's one of the most common protocols on factory floors, in building automation, and in power/utility systems.</p>
+      <p>Its popularity comes from being deliberately unambitious: a handful of data types, a small set of commands, and no vendor lock-in. A $10 sensor and a six-figure PLC can both speak it.</p>
+    </section>
+
+    <section class="topic" id="master-slave">
+      <h2>Master &amp; Slave Roles</h2>
+      <p>Modbus is strictly <strong>client-server</strong> (the original spec calls it master/slave). The master initiates every exchange — a slave never speaks unless spoken to. This keeps slave devices simple: they just listen for a request addressed to them and reply.</p>
+      <ul>
+        <li><strong>Master</strong> — usually a PLC, SCADA system, or HMI. Sends requests like "read holding registers 0–9 from device 5."</li>
+        <li><strong>Slave</strong> — a field device (sensor, drive, meter). Responds only when its own address is in the request.</li>
+      </ul>
+      <p>One master can talk to many slaves (up to 247 on an RTU bus); a slave only ever replies to the master that asked it something.</p>
+    </section>
+
+    <section class="topic" id="rtu-vs-tcp">
+      <h2>RTU vs TCP at a Glance</h2>
+      <p>"Modbus" is really a shared data model and command set riding on two different transports. Same vocabulary, different wires.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Modbus RTU</th><th>Modbus TCP</th></tr></thead>
+          <tbody>
+            <tr><td>Physical layer</td><td>Serial — RS-485 (multi-drop) or RS-232</td><td>Ethernet</td></tr>
+            <tr><td>Addressing</td><td>Slave ID, 1–247</td><td>IP address (+ Unit ID for gateways)</td></tr>
+            <tr><td>Framing</td><td>Binary + CRC-16, timing-based boundaries</td><td>MBAP header with explicit length field</td></tr>
+            <tr><td>Typical speed</td><td>9600–115200 bps</td><td>10/100/1000 Mbps</td></tr>
+            <tr><td>Default port</td><td class="mono">&mdash;</td><td class="mono">TCP 502</td></tr>
+            <tr><td>Common in</td><td>Legacy field devices, VFDs, energy meters</td><td>Modern PLCs, SCADA, IIoT gateways</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="topic" id="data-model">
+      <h2>The Data Model</h2>
+      <p>Every Modbus slave exposes the same four kinds of data, regardless of transport. Think of them as four separate tables, each with its own address space 0–65535:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Size</th><th>Access</th><th>Typical use</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Coil</strong></td><td>1 bit</td><td>Read/Write</td><td>A digital output — a relay, a motor-start command</td></tr>
+            <tr><td><strong>Discrete Input</strong></td><td>1 bit</td><td>Read-only</td><td>A digital input — a limit switch, a door sensor</td></tr>
+            <tr><td><strong>Holding Register</strong></td><td>16 bits</td><td>Read/Write</td><td>A setpoint, a configuration value</td></tr>
+            <tr><td><strong>Input Register</strong></td><td>16 bits</td><td>Read-only</td><td>A measured value — temperature, flow rate</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Nothing in the protocol enforces what a register actually <em>means</em> — that mapping (register 40012 is "motor RPM," scaled by 10) is documented per device, usually in a PDF from the manufacturer.</p>
+    </section>
+
+    <section class="topic" id="function-codes-basic">
+      <h2>Function Codes, Briefly</h2>
+      <p>Every request carries a <strong>function code</strong> — a single byte saying what operation to perform. At the basic level, you only need the four you'll use constantly:</p>
+      <ul>
+        <li><code>0x03</code> — Read Holding Registers</li>
+        <li><code>0x04</code> — Read Input Registers</li>
+        <li><code>0x06</code> — Write Single Register</li>
+        <li><code>0x05</code> — Write Single Coil</li>
+      </ul>
+      <p>The full reference table with all standard codes is in the Intermediate section below.</p>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+    <div class="level-banner intermediate"><span class="n">&#9679;&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="rtu-frame">
+      <div class="proto-box rtu">
+        <span class="tag">RTU</span>
+        <h2>RTU Frame Structure</h2>
+        <p>An RTU frame has no start/end markers in the data itself — frame boundaries are detected purely by <strong>silence</strong> on the line (more on that in Advanced). The frame contents are compact binary:</p>
+
+        <div class="frame">
+          <div class="byte rtu-part"><span class="b-label">Address</span><span class="b-size">1 byte</span></div>
+          <div class="byte rtu-part"><span class="b-label">Function Code</span><span class="b-size">1 byte</span></div>
+          <div class="byte rtu-part"><span class="b-label">Data</span><span class="b-size">N bytes</span></div>
+          <div class="byte rtu-part"><span class="b-label">CRC-16</span><span class="b-size">2 bytes</span></div>
+        </div>
+
+        <p><strong>Address</strong> is the target slave's ID (0 is reserved for broadcast). <strong>CRC-16</strong> protects the whole frame — transmitted low byte first, then high byte. A receiver that computes a different CRC than the one attached silently discards the frame.</p>
+        <div class="callout tip"><strong>Worked example</strong>
+          Read 2 holding registers starting at address 0 from slave 17 (0x11):<br>
+          <code>11 03 00 00 00 02 C6 9B</code><br>
+          = Address 0x11, FC 0x03 (Read Holding Registers), start address 0x0000, quantity 0x0002, CRC 0x9BC6 (sent as C6 9B). Try it yourself in the Frame Builder above — the defaults are already set to this exact example.
+        </div>
+      </div>
+    </section>
+
+    <section class="topic" id="tcp-frame">
+      <div class="proto-box tcp">
+        <span class="tag">TCP</span>
+        <h2>TCP Frame (MBAP Header)</h2>
+        <p>Modbus TCP wraps the same function-code-plus-data payload in a 7-byte header called the <strong>MBAP header</strong> (Modbus Application Protocol), then hands the whole thing to TCP — no CRC needed, since Ethernet/TCP already checksum the data.</p>
+
+        <div class="frame">
+          <div class="byte tcp-part"><span class="b-label">Transaction ID</span><span class="b-size">2 bytes</span></div>
+          <div class="byte tcp-part"><span class="b-label">Protocol ID</span><span class="b-size">2 bytes</span></div>
+          <div class="byte tcp-part"><span class="b-label">Length</span><span class="b-size">2 bytes</span></div>
+          <div class="byte tcp-part"><span class="b-label">Unit ID</span><span class="b-size">1 byte</span></div>
+          <div class="byte shared-part"><span class="b-label">Function Code</span><span class="b-size">1 byte</span></div>
+          <div class="byte shared-part"><span class="b-label">Data</span><span class="b-size">N bytes</span></div>
+        </div>
+
+        <ul>
+          <li><strong>Transaction ID</strong> — set by the master, echoed back by the slave, so the master can match responses to requests on a connection that may have several in flight.</li>
+          <li><strong>Protocol ID</strong> — always <code>0x0000</code> for Modbus.</li>
+          <li><strong>Length</strong> — byte count of everything that follows (Unit ID + function code + data).</li>
+          <li><strong>Unit ID</strong> — vestigial on pure TCP devices (often just <code>0x00</code> or <code>0xFF</code>), but meaningful when a gateway is bridging to RTU slaves behind it (see Advanced).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="topic" id="register-addressing">
+      <h2>Register Addressing — the 40001 Trap</h2>
+      <p>This single convention causes more integration bugs than anything else in Modbus. On the wire, every address is a plain 0-based 16-bit number. But documentation has historically used a <strong>5-digit convention</strong> where the leading digit encodes the table:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Documented as</th><th>Table</th><th>Wire address</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">00001–09999</td><td>Coils</td><td class="mono">0–9998</td></tr>
+            <tr><td class="mono">10001–19999</td><td>Discrete Inputs</td><td class="mono">0–9998</td></tr>
+            <tr><td class="mono">30001–39999</td><td>Input Registers</td><td class="mono">0–9998</td></tr>
+            <tr><td class="mono">40001–49999</td><td>Holding Registers</td><td class="mono">0–9998</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn"><strong>Where this bites you</strong>
+        A device manual says "flow rate is in register 40013." Your master software asks for holding register address — is it 13, or 12? Depends whether your software's register field expects the documented number or the 0-based wire address. When in doubt, request address 12 first and check against a known value.
+      </div>
+    </section>
+
+    <section class="topic" id="function-code-table">
+      <h2>Function Code Reference</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Name</th><th>Acts on</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">0x01</td><td>Read Coils</td><td>Coils</td></tr>
+            <tr><td class="mono">0x02</td><td>Read Discrete Inputs</td><td>Discrete Inputs</td></tr>
+            <tr><td class="mono">0x03</td><td>Read Holding Registers</td><td>Holding Registers</td></tr>
+            <tr><td class="mono">0x04</td><td>Read Input Registers</td><td>Input Registers</td></tr>
+            <tr><td class="mono">0x05</td><td>Write Single Coil</td><td>Coils</td></tr>
+            <tr><td class="mono">0x06</td><td>Write Single Register</td><td>Holding Registers</td></tr>
+            <tr><td class="mono">0x0F</td><td>Write Multiple Coils</td><td>Coils</td></tr>
+            <tr><td class="mono">0x10</td><td>Write Multiple Registers</td><td>Holding Registers</td></tr>
+            <tr><td class="mono">0x17</td><td>Read/Write Multiple Registers</td><td>Holding Registers</td></tr>
+            <tr><td class="mono">0x2B</td><td>Encapsulated Interface Transport</td><td>Device identification</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="topic" id="exceptions">
+      <h2>Exception Responses</h2>
+      <p>When a slave can't honor a request, it replies with the <strong>function code OR'd with 0x80</strong> (so 0x03 becomes 0x83), followed by a 1-byte exception code explaining why:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">0x01</td><td>Illegal Function — slave doesn't support this function code</td></tr>
+            <tr><td class="mono">0x02</td><td>Illegal Data Address — the register/coil address doesn't exist on this slave</td></tr>
+            <tr><td class="mono">0x03</td><td>Illegal Data Value — address is valid, but the value/quantity isn't</td></tr>
+            <tr><td class="mono">0x04</td><td>Slave Device Failure — an internal error occurred processing the request</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>No response at all (a timeout) is different from an exception — it usually means a wiring issue, wrong slave ID, or wrong baud rate rather than a protocol-level complaint.</p>
+    </section>
+
+    <section class="topic" id="rs485-wiring">
+      <div class="proto-box rtu">
+        <span class="tag">RTU</span>
+        <h2>RS-485 Wiring Basics</h2>
+        <p>Most Modbus RTU networks run over RS-485: a single twisted pair shared by every device on the bus (multi-drop), rather than a point-to-point link.</p>
+        <div class="bus-diagram">
+          <svg viewBox="0 0 640 140" role="img" aria-label="RS-485 daisy-chain bus with a master and three slaves, terminated at both ends">
+            <line x1="40" y1="70" x2="600" y2="70" stroke="var(--rtu)" stroke-width="3"/>
+            <circle cx="40" cy="70" r="6" fill="var(--rtu)"/>
+            <circle cx="600" cy="70" r="6" fill="var(--rtu)"/>
+            <rect x="40" y="90" width="18" height="10" fill="var(--ink)"/>
+            <rect x="582" y="90" width="18" height="10" fill="var(--ink)"/>
+            <text x="30" y="118" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">120&#937; term.</text>
+            <text x="562" y="118" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">120&#937; term.</text>
+
+            <g>
+              <rect x="90" y="20" width="110" height="36" rx="6" fill="var(--panel)" stroke="var(--rtu)" stroke-width="2"/>
+              <text x="145" y="42" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--ink)">Master</text>
+              <line x1="145" y1="56" x2="145" y2="70" stroke="var(--rtu)" stroke-width="2"/>
+            </g>
+            <g>
+              <rect x="250" y="20" width="110" height="36" rx="6" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+              <text x="305" y="42" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--ink)">Slave ID 1</text>
+              <line x1="305" y1="56" x2="305" y2="70" stroke="var(--line)" stroke-width="2"/>
+            </g>
+            <g>
+              <rect x="380" y="20" width="110" height="36" rx="6" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+              <text x="435" y="42" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--ink)">Slave ID 2</text>
+              <line x1="435" y1="56" x2="435" y2="70" stroke="var(--line)" stroke-width="2"/>
+            </g>
+            <g>
+              <rect x="470" y="85" width="110" height="36" rx="6" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+              <text x="525" y="107" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--ink)">Slave ID 3</text>
+              <line x1="525" y1="85" x2="525" y2="70" stroke="var(--line)" stroke-width="2"/>
+            </g>
+          </svg>
+        </div>
+        <ul>
+          <li><strong>Termination</strong> — a 120&#937; resistor at each physical end of the bus (not at every device) prevents signal reflections.</li>
+          <li><strong>Biasing</strong> — pull-up/pull-down resistors keep the line in a known idle state when no device is transmitting, avoiding noise being read as data.</li>
+          <li><strong>Daisy-chain, not star</strong> — devices should be wired in a line; star topologies cause reflections RS-485 wasn't designed to handle.</li>
+          <li><strong>Distance/speed trade-off</strong> — roughly 1200 m at low baud rates (9600), much less at high baud rates.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ ADVANCED ============ -->
+    <div class="level-banner advanced"><span class="n">&#9679;&#9679;&#9679;</span> Advanced</div>
+
+    <section class="topic" id="crc16">
+      <div class="proto-box rtu">
+        <span class="tag">RTU</span>
+        <h2>CRC-16 Calculation</h2>
+        <p>Modbus RTU uses CRC-16 with polynomial <code>0xA001</code> (the reversed form of 0x8005) and an initial value of <code>0xFFFF</code>. You rarely need to hand-roll this — every Modbus library does it — but understanding it helps when you're debugging with a logic analyzer and need to verify a frame by hand.</p>
+      <pre>uint16_t modbus_crc16(const uint8_t *data, int length) {
+    uint16_t crc = 0xFFFF;
+    for (int pos = 0; pos < length; pos++) {
+        crc ^= data[pos];
+        for (int i = 0; i < 8; i++) {
+            if (crc & 0x0001) {
+                crc >>= 1;
+                crc ^= 0xA001;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+    return crc;  // low byte transmitted first, then high byte
+}</pre>
+        <p>The CRC is computed over the address, function code, and data bytes — not including the CRC field itself, obviously.</p>
+      </div>
+    </section>
+
+    <section class="topic" id="rtu-timing">
+      <div class="proto-box rtu">
+        <span class="tag">RTU</span>
+        <h2>RTU Frame Timing</h2>
+        <p>RTU has no explicit frame delimiters, so devices rely on <strong>silence</strong> to know where one frame ends and the next begins:</p>
+        <ul>
+          <li>A gap of at least <strong>3.5 character times</strong> marks the start of a new frame.</li>
+          <li>A gap of <strong>1.5 character times</strong> <em>within</em> a frame is treated as an error — the receiver discards what it has and waits for the next 3.5-character silence.</li>
+        </ul>
+        <p>At low baud rates this works cleanly, but "character time" becomes impractically small at high speed. The Modbus spec addresses this directly: <strong>above 19200 baud, implementations should use a fixed 1.75 ms inter-frame gap and 0.75 ms inter-character gap</strong> rather than the literal character-time calculation.</p>
+        <div class="callout warn"><strong>Why this matters in practice</strong>
+          A master polling too fast, or a slave with a slow UART buffer, can cause frames to be misread as continuations of the previous one. If you see sporadic CRC failures under load (but not when polling slowly), timing — not wiring — is usually the cause.
+        </div>
+      </div>
+    </section>
+
+    <section class="topic" id="rtu-over-tcp">
+      <h2>RTU-over-TCP vs Native Modbus TCP</h2>
+      <p>These get confused constantly because both run over Ethernet on port 502, but they are not the same framing:</p>
+      <ul>
+        <li><strong>Native Modbus TCP</strong> uses the MBAP header described above — no CRC, no slave address byte (replaced by Unit ID).</li>
+        <li><strong>Modbus RTU-over-TCP</strong> (sometimes called "Modbus RTU encapsulated in TCP") takes the literal RTU frame — address, function code, data, <em>and CRC</em> — and just tunnels those bytes over a TCP socket, with no MBAP header at all.</li>
+      </ul>
+      <p>Some cheap serial-to-Ethernet converters do the latter instead of proper protocol translation. Symptom: a "Modbus TCP" device that a standards-compliant TCP master can't talk to, because it's actually expecting/sending raw RTU bytes with a CRC the master never generates. Always check which one a converter actually implements before assuming "TCP" means MBAP framing.</p>
+    </section>
+
+    <section class="topic" id="gateways">
+      <h2>Gateways &amp; the Unit ID</h2>
+      <p>A Modbus TCP-to-RTU gateway lets a TCP master reach a bus of RTU slaves it has no direct serial connection to. This is exactly where the otherwise-vestigial <strong>Unit ID</strong> field earns its keep: the master puts the target RTU slave's address in the Unit ID byte, the gateway strips the MBAP header, builds a proper RTU frame (computing a fresh CRC) addressed to that slave ID, and sends it out the serial port — then does the reverse for the response.</p>
+      <p>Practical implication: when configuring software to talk to a device behind a gateway, the IP address gets you to the <em>gateway</em>, but the Unit ID still has to match the device's actual RTU slave address on the far side.</p>
+    </section>
+
+    <section class="topic" id="endianness">
+      <h2>Endianness Pitfalls (32-bit Values)</h2>
+      <p>A single Modbus register is only 16 bits. Representing a 32-bit value — a float, or a counter that exceeds 65535 — takes two consecutive registers, and here the spec says nothing about ordering. Different vendors do it differently:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Layout</th><th>Register 1</th><th>Register 2</th></tr></thead>
+          <tbody>
+            <tr><td>Big-endian word order</td><td>High word</td><td>Low word</td></tr>
+            <tr><td>Little-endian word order</td><td>Low word</td><td>High word</td></tr>
+            <tr><td>Byte-swapped within each word</td><td colspan="2">Either of the above, but with the two bytes inside each register also reversed</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn"><strong>Debugging tip</strong>
+        If a float reads as a wildly wrong number (or a sane-looking number that's off by a huge power of ten), you're almost certainly looking at the right two registers in the wrong order. Try swapping the register (word) order before swapping bytes — it's the more common culprit.
+      </div>
+    </section>
+
+    <section class="topic" id="security">
+      <h2>Security Considerations</h2>
+      <p>Modbus — both RTU and TCP — has <strong>no built-in authentication, authorization, or encryption</strong>. It was designed for isolated, trusted industrial networks in an era before that was a problem. Anyone who can reach a Modbus TCP slave on port 502 can read or write any register it exposes, with no credentials required.</p>
+      <ul>
+        <li>Never expose Modbus TCP (port 502) directly to the public internet — this is a well-documented, frequently-exploited ICS exposure.</li>
+        <li>Segment OT networks from IT/corporate networks; put Modbus traffic behind a firewall or VPN.</li>
+        <li><strong>Modbus/TCP Security</strong> (an official extension, port 802) adds TLS — supported by some newer devices, but adoption is still limited.</li>
+        <li>Monitor for unexpected write commands (FC 0x05/0x06/0x0F/0x10) from unfamiliar hosts — a classic ICS attack pattern.</li>
+      </ul>
+    </section>
+
+    <section class="topic" id="tools">
+      <h2>Tools &amp; Debugging</h2>
+      <ul>
+        <li><strong>Wireshark</strong> — has a native Modbus TCP dissector; decodes MBAP headers and function codes automatically. For RTU, you need a USB-to-serial tap and a protocol analyzer, or a logic analyzer plus manual decoding.</li>
+        <li><strong>pymodbus</strong> (Python) — the most common open-source library for building a master or slave simulator in either RTU or TCP.</li>
+        <li><strong>QModMaster / ModScan / Modbus Poll</strong> — GUI master simulators for manually poking registers on a real or simulated slave during bring-up.</li>
+        <li><strong>diagslave / modpoll</strong> — lightweight command-line slave/master simulators, handy for CI or headless testing.</li>
+      </ul>
+    </section>
+
+    <section class="topic" id="code-example">
+      <h2>Code Example — Reading Registers in Python</h2>
+      <p>Using <code>pymodbus</code>, the same read call works almost identically regardless of transport — only the client setup differs:</p>
+
+      <div class="proto-box rtu">
+        <span class="tag">RTU</span>
+        <pre>from pymodbus.client import ModbusSerialClient
+
+client = ModbusSerialClient(
+    port="/dev/ttyUSB0",   # or "COM3" on Windows
+    baudrate=9600,
+    parity="N",
+    stopbits=1,
+    bytesize=8,
+)
+client.connect()
+
+result = client.read_holding_registers(address=0, count=2, slave=17)
+print(result.registers)
+
+client.close()</pre>
+      </div>
+
+      <div class="proto-box tcp">
+        <span class="tag">TCP</span>
+        <pre>from pymodbus.client import ModbusTcpClient
+
+client = ModbusTcpClient("192.168.1.50", port=502)
+client.connect()
+
+result = client.read_holding_registers(address=0, count=2, slave=1)
+print(result.registers)
+
+client.close()</pre>
+      </div>
+
+      <p>Note <code>slave=</code> in both cases — for RTU it's the physical slave ID on the bus; for TCP it's the Unit ID (meaningful mainly when a gateway sits behind that IP).</p>
+    </section>
+
+    <!-- ============ EXTENSIONS ============ -->
+    <div class="level-banner extension"><span class="n">&#9671;</span> Extensions</div>
+
+    <section class="topic" id="ascii-mode">
+      <div class="proto-box rtu">
+        <span class="tag">Serial</span>
+        <h2>Modbus ASCII Mode</h2>
+        <p>Before RTU became the dominant serial mode, the original Modbus spec offered a second serial framing: <strong>ASCII mode</strong>. It's rare in new designs today, but still shows up on older equipment — and it's worth recognizing because its frames look completely different from RTU on the wire, even though the function codes and data model underneath are identical.</p>
+
+        <p>Instead of raw binary bytes, every byte is sent as <strong>two printable hex-digit ASCII characters</strong>. The frame is explicitly delimited rather than timing-based:</p>
+
+        <div class="frame">
+          <div class="byte rtu-part"><span class="b-label">:</span><span class="b-size">start, 1 char</span></div>
+          <div class="byte rtu-part"><span class="b-label">Address</span><span class="b-size">2 hex chars</span></div>
+          <div class="byte rtu-part"><span class="b-label">Function</span><span class="b-size">2 hex chars</span></div>
+          <div class="byte rtu-part"><span class="b-label">Data</span><span class="b-size">2N hex chars</span></div>
+          <div class="byte rtu-part"><span class="b-label">LRC</span><span class="b-size">2 hex chars</span></div>
+          <div class="byte rtu-part"><span class="b-label">CR LF</span><span class="b-size">end, 2 chars</span></div>
+        </div>
+
+        <p>Error checking uses an <strong>LRC (Longitudinal Redundancy Check)</strong> instead of CRC-16: sum every data byte (address through the last data byte), keep only the low 8 bits, then take the two's complement.</p>
+        <pre>uint8_t modbus_lrc(const uint8_t *data, int length) {
+    uint8_t lrc = 0;
+    for (int i = 0; i < length; i++) {
+        lrc += data[i];
+    }
+    return (uint8_t)(-((int8_t)lrc));  // two's complement
+}</pre>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>RTU</th><th>ASCII</th></tr></thead>
+            <tbody>
+              <tr><td>Encoding</td><td>Raw binary</td><td>Printable hex ASCII</td></tr>
+              <tr><td>Framing</td><td>3.5-char silence</td><td>Explicit <code>:</code> start, CRLF end</td></tr>
+              <tr><td>Error check</td><td>CRC-16</td><td>LRC</td></tr>
+              <tr><td>Bytes on the wire</td><td>1&times; the data</td><td>~2&times; the data (plus delimiters)</td></tr>
+              <tr><td>Why you'd use it</td><td>Efficiency (default choice today)</td><td>Human-readable on a dumb terminal; more tolerant of modems/links with timing jitter, since it doesn't rely on precise inter-character silence</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A master and slave must agree in advance which serial mode they're using (RTU or ASCII) — there's no auto-detection; configuring the wrong one just looks like silence or garbage on the line.</p>
+      </div>
+    </section>
+
+    <section class="topic" id="ladder-logic">
+      <h2>Ladder Logic Integration</h2>
+      <p>On a PLC, Modbus communication is almost never "automatic" — a rung of ladder logic typically has to explicitly trigger each read or write, using a vendor-specific communication instruction or function block (common names: <code>MSG</code>, <code>MB_CLIENT</code>, <code>MODBUS_MASTER</code>, depending on platform). A minimal pattern looks like this:</p>
+
+      <div class="ladder">
+        <div class="rung">
+          <span class="rung-label mono">Rung 1 — trigger a read every scan the enable bit is on</span>
+        </div>
+        <div class="rung">
+          <span class="rail">|</span>
+          <span class="contact closed"></span>
+          <span class="wire"></span>
+          <span class="block">MB_READ<br>slave=17 reg=0 qty=2 &rarr; Temp_Register</span>
+          <span class="wire"></span>
+          <span class="rail">|</span>
+        </div>
+        <div class="rung">
+          <span class="rung-label mono">Rung 2 — act on the value once the read completes</span>
+        </div>
+        <div class="rung">
+          <span class="rail">|</span>
+          <span class="contact closed"></span>
+          <span class="wire"></span>
+          <span class="block">Temp_Register &gt; 1000</span>
+          <span class="wire"></span>
+          <span class="coil">(Alarm)</span>
+          <span class="wire"></span>
+          <span class="rail">|</span>
+        </div>
+      </div>
+
+      <p>Rung 1's enable contact is usually a free-running clock bit or a "communication idle" flag rather than a one-shot, since Modbus reads need to repeat continuously to stay current — most platforms also expose a "done"/"error" bit pair from the instruction so the next rung can react to a failed read (timeout, exception response) rather than acting on stale or garbage data.</p>
+
+      <p>A second, increasingly common pattern skips explicit read/write rungs entirely: some PLCs and HMI/SCADA packages let you configure a <strong>cyclic Modbus I/O mapping</strong> once (device IP or serial port, slave ID, register ranges), and the platform polls automatically in the background, exposing each remote register as an ordinary local tag. Ladder logic then just reads <code>Temp_Register</code> like any other input — simpler to write, but you lose fine-grained control over poll timing and error handling for a specific transaction.</p>
+
+      <div class="callout tip"><strong>Design tip</strong>
+        Don't issue a new Modbus request every single PLC scan (which can run at 10ms or faster) — most slaves can't keep up, and RTU buses especially will choke with collisions/timeouts. Gate requests with a timer (e.g. poll every 200&ndash;500ms) rather than the raw scan cycle.
+      </div>
+    </section>
+
+    <section class="topic" id="vendor-quirks">
+      <h2>Vendor Quirks</h2>
+      <p>The spec is small, but real devices diverge from each other in the gaps it leaves open. A few patterns worth knowing before you integrate a specific device:</p>
+
+      <h3>Schneider Electric / Modicon</h3>
+      <p>As the protocol's creator, Schneider's own documentation (and much third-party documentation modeled on it) still leans on the classic <code>4xxxx</code>-style register numbering described earlier. Their EcoStruxure/Unity software generally expects the documented number, not the raw 0-based address — check which one a given tool wants before assuming.</p>
+
+      <h3>Siemens</h3>
+      <p>S7-series PLCs don't speak Modbus natively out of the box — Siemens' own ecosystem is built around PROFIBUS/PROFINET instead. Talking Modbus from a Siemens PLC means adding a library block (<code>MB_CLIENT</code>/<code>MB_SERVER</code> in TIA Portal) and explicitly wiring up the communication port, rather than it being an inherent protocol option like it is on many competitors' PLCs.</p>
+
+      <h3>VFDs (drives) — ABB, Danfoss, Yaskawa, etc.</h3>
+      <p>Drives commonly expose a <strong>control word</strong> holding register that must be written with a specific bit pattern (enable, run, fault-reset bits) before the drive will accept a speed reference at all — a very common first-integration bug is writing only the speed register and wondering why the motor never turns. Speed/frequency values are also frequently scaled (e.g. a register value of 500 meaning 50.0 Hz) — always check the scaling factor in that drive's specific parameter manual, as it varies by vendor and sometimes by firmware version.</p>
+
+      <h3>Energy meters — Schneider PM-series, Eastron SDM-series, etc.</h3>
+      <p>Measurements (voltage, current, kWh) are usually IEEE-754 floats spread across two consecutive holding/input registers — and, as covered in Endianness Pitfalls, the word order is not standardized even within one manufacturer's own product lines. Always confirm against a known value (e.g. compare a live voltage reading to a multimeter) rather than assuming the same word order as the last meter you integrated.</p>
+
+      <h3>WAGO / Beckhoff I/O</h3>
+      <p>Modular I/O systems from these vendors often expose the <em>same</em> physical point through more than one Modbus table — e.g. a digital input available as both a Discrete Input and mirrored into a Holding Register bit for convenience — plus vendor-specific diagnostic registers (module status, fault codes) layered on top of the standard data model. Their register-map PDFs are essential reading; don't assume a "standard" layout.</p>
+
+      <div class="callout warn"><strong>The one rule that covers most of this section</strong>
+        Never trust a generic assumption about scaling, word order, or addressing convention for a device you haven't integrated before — open that specific model's register map document first. The protocol is standardized; what a given vendor puts behind it is not.
+      </div>
+    </section>
+
+    <section class="topic" id="diagnostics">
+      <div class="proto-box rtu">
+        <span class="tag">Serial</span>
+        <h2>Diagnostic Function Code (0x08)</h2>
+        <p>Function code <code>0x08</code> is specific to serial lines (RTU/ASCII) and is used to test and diagnose the communication link itself, separately from reading or writing application data. The data field starts with a 2-byte <strong>sub-function code</strong> that picks what kind of diagnostic to run:</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Sub-function</th><th>Name</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">0x00</td><td>Return Query Data</td><td>Loopback test — the slave echoes back exactly the data it was sent</td></tr>
+              <tr><td class="mono">0x01</td><td>Restart Communications Option</td><td>Resets the slave's serial communication state/counters</td></tr>
+              <tr><td class="mono">0x0A</td><td>Clear Counters and Diagnostic Register</td><td>Zeroes all the diagnostic counters below</td></tr>
+              <tr><td class="mono">0x0B</td><td>Return Bus Message Count</td><td>Total messages the slave has detected on the bus</td></tr>
+              <tr><td class="mono">0x0C</td><td>Return Bus Communication Error Count</td><td>CRC/framing errors detected</td></tr>
+              <tr><td class="mono">0x0D</td><td>Return Bus Exception Error Count</td><td>Number of exception responses this slave has sent</td></tr>
+              <tr><td class="mono">0x0E</td><td>Return Slave Message Count</td><td>Messages addressed specifically to this slave</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>In practice, <strong>Return Query Data (0x00)</strong> is the one you'll reach for most: it's the standard "is this device alive and framing correctly" test, without touching any application register — useful when you suspect a wiring or baud-rate issue but don't want side effects from poking real registers.</p>
+        <div class="callout tip"><strong>Worked example</strong>
+          Request: <code>11 08 00 00 A5 37</code> (slave 0x11, sub-function 0x0000, data 0xA537). A healthy slave replies with the identical frame — same function code, same data — confirming the link is up and correctly framing requests.
+        </div>
+      </div>
+    </section>
+
+    <section class="topic" id="protocol-comparison">
+      <h2>Modbus vs. Other Industrial Protocols</h2>
+      <p>Modbus is rarely the only option on the table. Knowing where it sits relative to the alternatives helps answer "should this actually be Modbus?" before you commit to it.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Modbus</th><th>PROFINET</th><th>EtherNet/IP</th><th>BACnet</th><th>OPC UA</th></tr></thead>
+          <tbody>
+            <tr><td>Typical domain</td><td>General industrial, legacy-friendly</td><td>Factory automation (Siemens ecosystem)</td><td>Factory automation (Rockwell ecosystem)</td><td>Building automation (HVAC, lighting, fire)</td><td>IT/OT convergence, IIoT</td></tr>
+            <tr><td>Transport</td><td>Serial or plain TCP</td><td>Ethernet, real-time classes</td><td>Standard Ethernet + CIP</td><td>IP, MS/TP serial, Ethernet</td><td>TCP or HTTPS, pub/sub variants</td></tr>
+            <tr><td>Built-in security</td><td>None</td><td>Historically weak, improving</td><td>CIP Security extension</td><td>BACnet/SC adds TLS</td><td>Yes — certificates, encryption, auth from the start</td></tr>
+            <tr><td>Real-time determinism</td><td>No</td><td>Yes (RT/IRT, sub-ms)</td><td>Moderate</td><td>Not a priority (slow timescales)</td><td>Not inherent (TSN extensions exist)</td></tr>
+            <tr><td>Implementation complexity</td><td>Very low</td><td>High</td><td>Medium-high</td><td>Medium</td><td>High (rich information modeling)</td></tr>
+            <tr><td>Best fit</td><td>Quick integrations, legacy device support</td><td>High-speed motion control</td><td>Rockwell-centric plants</td><td>HVAC/BMS specifically</td><td>Modern architectures needing built-in security and semantic data</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Rule of thumb:</strong> reach for Modbus when you need something simple, well-understood, and supported by nearly every device on the market — especially retrofitting older equipment. Reach for PROFINET or EtherNet/IP when you need hard real-time motion control within one vendor's ecosystem. Reach for BACnet specifically for building/HVAC systems. Reach for OPC UA when security and a rich, vendor-neutral information model matter more than minimal implementation effort — increasingly the default choice for new IIoT architectures that need to talk to the IT side of the business securely.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+    <div class="level-banner extension"><span class="n">&#9998;</span> Practice</div>
+
+    <section class="topic" id="practice-exercises">
+      <h2>Practice Exercises</h2>
+      <p>Work through these in order — they build on each other. Click a question to reveal the worked answer.</p>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Decode this RTU frame</summary>
+        <div class="ex-body">
+          <p>Frame: <code>11 03 00 6B 00 03 76 87</code></p>
+          <p>Identify every field: slave address, function code, and what it's requesting.</p>
+          <div class="answer"><strong>Answer</strong>
+            <code>11</code> = slave address 17 &middot; <code>03</code> = Read Holding Registers &middot; <code>00 6B</code> = starting address 0x006B (107) &middot; <code>00 03</code> = quantity: 3 registers &middot; <code>76 87</code> = CRC-16 (0x8776, transmitted low byte first).
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Convert a documented register number</summary>
+        <div class="ex-body">
+          <p>A meter's manual says "line voltage is in register <strong>30007</strong>." What table does this belong to, and what's the 0-based wire address you'd actually request?</p>
+          <div class="answer"><strong>Answer</strong>
+            The <code>3xxxx</code> prefix means Input Registers. Wire address = 30007 &minus; 30001 = <strong>6</strong>. You'd issue a Read Input Registers (FC 0x04) request starting at address 6.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Construct a write request</summary>
+        <div class="ex-body">
+          <p>Write the RTU request bytes (everything except the CRC) to write the value <strong>1500</strong> to a single holding register at wire address 10, on slave 5.</p>
+          <div class="answer"><strong>Answer</strong>
+            <code>05 06 00 0A 05 DC</code><br>
+            <code>05</code> = slave 5 &middot; <code>06</code> = Write Single Register &middot; <code>00 0A</code> = address 10 &middot; <code>05 DC</code> = 1500 in hex (0x05DC).
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Decode a TCP/MBAP frame</summary>
+        <div class="ex-body">
+          <p>Frame (as sent over the TCP socket): <code>00 01 00 00 00 06 01 03 00 00 00 02</code></p>
+          <p>Decode the full MBAP header plus the PDU.</p>
+          <div class="answer"><strong>Answer</strong>
+            Transaction ID = 0x0001 &middot; Protocol ID = 0x0000 &middot; Length = 0x0006 (6 bytes follow) &middot; Unit ID = 0x01 &middot; Function code = 0x03 (Read Holding Registers) &middot; Start address = 0x0000 &middot; Quantity = 0x0002. Notice: no CRC anywhere — TCP/Ethernet already guarantees data integrity.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Decode an exception response</summary>
+        <div class="ex-body">
+          <p>A master sends a Read Holding Registers request to slave 17 and gets back: <code>11 83 02 C1 34</code>. What happened?</p>
+          <div class="answer"><strong>Answer</strong>
+            <code>83</code> = 0x03 | 0x80 &rarr; this is an exception response to function code 0x03. The exception code <code>02</code> means <strong>Illegal Data Address</strong> — the register range requested doesn't exist on this slave. Check the start address and quantity against that slave's actual register map.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Spot the bug</summary>
+        <div class="ex-body">
+          <p>Your code reads a 32-bit temperature float from two holding registers and has worked correctly for months against Meter A. You add Meter B from a different manufacturer, same register layout on paper, same code path — and now the temperature reads as either a huge meaningless number or NaN. What's almost certainly wrong, and what would you check first?</p>
+          <div class="answer"><strong>Answer</strong>
+            Word/byte order for 32-bit values isn't standardized by the Modbus spec — Meter B very likely stores its float with a different register (and/or byte) order than Meter A. Check Meter B's register map document for its specific word-order convention, and try swapping the two registers' order before assuming anything else is broken.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Diagnose with function code 0x08</summary>
+        <div class="ex-body">
+          <p>A slave on an RS-485 bus intermittently stops responding to application reads (FC 0x03/0x04). Before assuming the device itself is faulty, what's a low-risk first check you could run against it, and how would you interpret the result?</p>
+          <div class="answer"><strong>Answer</strong>
+            Send a Diagnostics (FC 0x08) <strong>Return Query Data</strong> request (sub-function 0x00) with some arbitrary data. If the slave echoes it back correctly, the serial link itself (wiring, termination, baud rate, addressing) is fine and the issue is more likely application-level (e.g. it's busy, or rejecting that specific register range) — if it doesn't respond even to the loopback test, suspect the physical link (wiring, termination resistors, baud rate mismatch) before the device's application logic.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function crc16modbus(bytes){
+    let crc = 0xFFFF;
+    for (let b of bytes){
+      crc ^= b;
+      for (let i = 0; i < 8; i++){
+        if (crc & 1){ crc = (crc >> 1) ^ 0xA001; }
+        else { crc = crc >> 1; }
+      }
+    }
+    return crc & 0xFFFF;
+  }
+
+  function lrc(bytes){
+    let sum = 0;
+    for (let b of bytes){ sum = (sum + b) & 0xFF; }
+    return (0x100 - sum) & 0xFF;
+  }
+
+  function parseHexBytes(str){
+    const cleaned = str.trim().replace(/0x/gi, "").replace(/,/g, " ");
+    if (!cleaned) return [];
+    const parts = cleaned.split(/\s+/);
+    const bytes = [];
+    for (const p of parts){
+      if (!/^[0-9a-fA-F]{1,2}$/.test(p)) {
+        throw new Error('Invalid hex byte: "' + p + '" (each byte must be 1-2 hex digits, space-separated)');
+      }
+      bytes.push(parseInt(p, 16));
+    }
+    return bytes;
+  }
+
+  function toHexByte(n){
+    return n.toString(16).toUpperCase().padStart(2, "0");
+  }
+
+  function bytesToHexString(bytes){
+    return bytes.map(toHexByte).join(" ");
+  }
+
+  function makeByteBox(label, size, cls){
+    const div = document.createElement("div");
+    div.className = "byte " + cls;
+    const l = document.createElement("span");
+    l.className = "b-label";
+    l.textContent = label;
+    const s = document.createElement("span");
+    s.className = "b-size";
+    s.textContent = size;
+    div.appendChild(l);
+    div.appendChild(s);
+    return div;
+  }
+
+  /* ---------- Frame Builder ---------- */
+  let currentMode = "rtu";
+  const modeButtons = document.querySelectorAll(".mode-btn");
+  const txnField = document.getElementById("bf-txn-field");
+
+  modeButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      modeButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentMode = btn.dataset.mode;
+      txnField.style.display = (currentMode === "tcp") ? "flex" : "none";
+      document.getElementById("bf-output").style.display = "none";
+      document.getElementById("bf-error").textContent = "";
+    });
+  });
+
+  document.getElementById("bf-build").addEventListener("click", () => {
+    const errorEl = document.getElementById("bf-error");
+    const outputEl = document.getElementById("bf-output");
+    errorEl.textContent = "";
+    outputEl.style.display = "none";
+
+    try {
+      const addrRaw = document.getElementById("bf-addr").value.trim();
+      const addr = parseInt(addrRaw, 10);
+      if (isNaN(addr) || addr < 0 || addr > 255) {
+        throw new Error("Slave/Unit ID must be a decimal number 0-255.");
+      }
+      const fc = parseInt(document.getElementById("bf-fc").value, 16);
+      const dataBytes = parseHexBytes(document.getElementById("bf-data").value);
+      const breakdown = document.getElementById("bf-breakdown");
+      breakdown.innerHTML = "";
+
+      if (currentMode === "rtu") {
+        const base = [addr, fc, ...dataBytes];
+        const crc = crc16modbus(base);
+        const crcLo = crc & 0xFF, crcHi = (crc >> 8) & 0xFF;
+        const full = [...base, crcLo, crcHi];
+        document.getElementById("bf-hex").textContent = bytesToHexString(full);
+        breakdown.appendChild(makeByteBox(toHexByte(addr), "Address", "rtu-part"));
+        breakdown.appendChild(makeByteBox(toHexByte(fc), "Function", "rtu-part"));
+        breakdown.appendChild(makeByteBox(dataBytes.length ? bytesToHexString(dataBytes) : "(none)", "Data", "rtu-part"));
+        breakdown.appendChild(makeByteBox(toHexByte(crcLo) + " " + toHexByte(crcHi), "CRC-16", "rtu-part"));
+
+      } else if (currentMode === "ascii") {
+        const base = [addr, fc, ...dataBytes];
+        const l = lrc(base);
+        const asciiBody = base.map(toHexByte).join("") + toHexByte(l);
+        const fullDisplay = ":" + asciiBody + "\\r\\n";
+        document.getElementById("bf-hex").textContent = fullDisplay;
+        breakdown.appendChild(makeByteBox(":", "Start", "rtu-part"));
+        breakdown.appendChild(makeByteBox(toHexByte(addr), "Address", "rtu-part"));
+        breakdown.appendChild(makeByteBox(toHexByte(fc), "Function", "rtu-part"));
+        breakdown.appendChild(makeByteBox(dataBytes.length ? bytesToHexString(dataBytes) : "(none)", "Data", "rtu-part"));
+        breakdown.appendChild(makeByteBox(toHexByte(l), "LRC", "rtu-part"));
+        breakdown.appendChild(makeByteBox("\\r\\n", "End", "rtu-part"));
+
+      } else {
+        const txnHexRaw = document.getElementById("bf-txn").value.trim().replace(/0x/i, "") || "0001";
+        if (!/^[0-9a-fA-F]{1,4}$/.test(txnHexRaw)) {
+          throw new Error("Transaction ID must be 1-4 hex digits.");
+        }
+        const txn = parseInt(txnHexRaw, 16) & 0xFFFF;
+        const pdu = [fc, ...dataBytes];
+        const length = pdu.length + 1;
+        const mbap = [
+          (txn >> 8) & 0xFF, txn & 0xFF,
+          0x00, 0x00,
+          (length >> 8) & 0xFF, length & 0xFF,
+          addr
+        ];
+        const full = [...mbap, ...pdu];
+        document.getElementById("bf-hex").textContent = bytesToHexString(full);
+        breakdown.appendChild(makeByteBox(toHexByte(mbap[0]) + " " + toHexByte(mbap[1]), "Transaction ID", "tcp-part"));
+        breakdown.appendChild(makeByteBox("00 00", "Protocol ID", "tcp-part"));
+        breakdown.appendChild(makeByteBox(toHexByte(mbap[4]) + " " + toHexByte(mbap[5]), "Length", "tcp-part"));
+        breakdown.appendChild(makeByteBox(toHexByte(addr), "Unit ID", "tcp-part"));
+        breakdown.appendChild(makeByteBox(toHexByte(fc), "Function", "shared-part"));
+        breakdown.appendChild(makeByteBox(dataBytes.length ? bytesToHexString(dataBytes) : "(none)", "Data", "shared-part"));
+      }
+
+      outputEl.style.display = "block";
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  });
+
+  /* ---------- Checksum Calculator ---------- */
+  document.getElementById("cs-calc").addEventListener("click", () => {
+    const errorEl = document.getElementById("cs-error");
+    const outputEl = document.getElementById("cs-output");
+    errorEl.textContent = "";
+    outputEl.style.display = "none";
+    try {
+      const bytes = parseHexBytes(document.getElementById("cs-input").value);
+      if (!bytes.length) { throw new Error("Enter at least one byte."); }
+      const crc = crc16modbus(bytes);
+      const crcLo = crc & 0xFF, crcHi = (crc >> 8) & 0xFF;
+      const l = lrc(bytes);
+      document.getElementById("cs-crc").textContent = toHexByte(crcLo) + " " + toHexByte(crcHi) + "  (0x" + toHexByte(crcHi) + toHexByte(crcLo) + ")";
+      document.getElementById("cs-lrc").textContent = "0x" + toHexByte(l);
+      document.getElementById("cs-full").textContent = bytesToHexString(bytes) + " " + toHexByte(crcLo) + " " + toHexByte(crcHi);
+      outputEl.style.display = "grid";
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  });
+
+  /* ---------- Troubleshooting checklist ---------- */
+  document.querySelectorAll(".checklist li").forEach(li => {
+    li.style.cursor = "pointer";
+    li.addEventListener("click", () => {
+      li.classList.toggle("done");
+    });
+  });
+
+  /* ---------- Register Value Decoder ---------- */
+  function parseReg(str, label){
+    const cleaned = str.trim().replace(/0x/i, "");
+    if (!/^[0-9a-fA-F]{1,4}$/.test(cleaned)) {
+      throw new Error(label + " must be 1-4 hex digits (a single 16-bit register value).");
+    }
+    return parseInt(cleaned, 16) & 0xFFFF;
+  }
+
+  document.getElementById("dec-run").addEventListener("click", () => {
+    const errorEl = document.getElementById("dec-error");
+    const outputEl = document.getElementById("dec-output");
+    errorEl.textContent = "";
+    outputEl.style.display = "none";
+    try {
+      const r1 = parseReg(document.getElementById("dec-reg1").value, "Register 1");
+      const r2 = parseReg(document.getElementById("dec-reg2").value, "Register 2");
+      const order = document.getElementById("dec-order").value;
+
+      // A,B = high/low byte of register 1 ; C,D = high/low byte of register 2
+      const A = (r1 >> 8) & 0xFF, B = r1 & 0xFF, C = (r2 >> 8) & 0xFF, D = r2 & 0xFF;
+      let seq;
+      switch (order) {
+        case "ABCD": seq = [A, B, C, D]; break;
+        case "DCBA": seq = [D, C, B, A]; break;
+        case "BADC": seq = [B, A, D, C]; break;
+        case "CDAB": seq = [C, D, A, B]; break;
+        default: seq = [A, B, C, D];
+      }
+
+      const buf = new ArrayBuffer(4);
+      const view = new DataView(buf);
+      seq.forEach((b, i) => view.setUint8(i, b));
+
+      const floatVal = view.getFloat32(0, false);
+      const uintVal = view.getUint32(0, false);
+
+      document.getElementById("dec-float").textContent = Number.isFinite(floatVal) ? floatVal.toString() : "NaN / Infinity (likely wrong byte order)";
+      document.getElementById("dec-uint").textContent = uintVal.toString() + "  (0x" + uintVal.toString(16).toUpperCase().padStart(8, "0") + ")";
+      document.getElementById("dec-bytes").textContent = seq.map(toHexByte).join(" ");
+      outputEl.style.display = "grid";
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  });
+
+  /* ---------- Frame Analyzer ---------- */
+  const FC_NAMES = {
+    0x01: "Read Coils", 0x02: "Read Discrete Inputs", 0x03: "Read Holding Registers",
+    0x04: "Read Input Registers", 0x05: "Write Single Coil", 0x06: "Write Single Register",
+    0x08: "Diagnostics", 0x0F: "Write Multiple Coils", 0x10: "Write Multiple Registers",
+    0x17: "Read/Write Multiple Registers", 0x2B: "Encapsulated Interface Transport"
+  };
+  const EXC_NAMES = {
+    0x01: "Illegal Function", 0x02: "Illegal Data Address",
+    0x03: "Illegal Data Value", 0x04: "Slave Device Failure"
+  };
+
+  function fcLabel(fc, excByte){
+    if (fc & 0x80){
+      const base = fc & 0x7F;
+      let s = "Exception response to 0x" + toHexByte(base) + " (" + (FC_NAMES[base] || "unknown") + ")";
+      if (excByte !== undefined) {
+        s += " — code 0x" + toHexByte(excByte) + " (" + (EXC_NAMES[excByte] || "unrecognized exception code") + ")";
+      }
+      return s;
+    }
+    return "0x" + toHexByte(fc) + " — " + (FC_NAMES[fc] || "unknown / vendor-specific");
+  }
+
+  function makeFieldRow(name, value){
+    const row = document.createElement("div");
+    row.className = "field-row";
+    const n = document.createElement("div"); n.className = "f-name"; n.textContent = name;
+    const v = document.createElement("div"); v.className = "f-value"; v.textContent = value;
+    row.appendChild(n); row.appendChild(v);
+    return row;
+  }
+
+  let analyzerMode = "rtu";
+  document.querySelectorAll(".an-mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".an-mode-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      analyzerMode = btn.dataset.mode;
+    });
+  });
+
+  document.getElementById("an-run").addEventListener("click", () => {
+    const errorEl = document.getElementById("an-error");
+    const outputEl = document.getElementById("an-output");
+    const fieldsEl = document.getElementById("an-fields");
+    errorEl.textContent = "";
+    outputEl.style.display = "none";
+    fieldsEl.innerHTML = "";
+
+    try {
+      const raw = document.getElementById("an-input").value.trim();
+      if (!raw) throw new Error("Paste a frame first.");
+
+      let mode, fields = [], checkOk = null, checkLabel = "";
+
+      if (raw.startsWith(":")) {
+        mode = "ASCII";
+        const body = raw.slice(1).replace(/\\r|\\n|[\r\n]/g, "").trim();
+        if (body.length % 2 !== 0) throw new Error("ASCII frame body has an odd number of hex characters.");
+        const bytes = [];
+        for (let i = 0; i < body.length; i += 2) {
+          const pair = body.slice(i, i + 2);
+          if (!/^[0-9a-fA-F]{2}$/.test(pair)) throw new Error('Invalid hex pair in ASCII body: "' + pair + '"');
+          bytes.push(parseInt(pair, 16));
+        }
+        if (bytes.length < 3) throw new Error("Frame too short.");
+        const base = bytes.slice(0, bytes.length - 1);
+        const receivedLrc = bytes[bytes.length - 1];
+        const computedLrc = lrc(base);
+        checkOk = (receivedLrc === computedLrc);
+        checkLabel = "LRC " + (checkOk ? "valid" : "MISMATCH") + " (received 0x" + toHexByte(receivedLrc) + ", computed 0x" + toHexByte(computedLrc) + ")";
+
+        const addr = base[0], fc = base[1], data = base.slice(2);
+        const exc = (fc & 0x80) ? data[0] : undefined;
+        fields.push(["Address", "0x" + toHexByte(addr) + " (" + addr + ")"]);
+        fields.push(["Function", fcLabel(fc, exc)]);
+        fields.push(["Data", data.length ? bytesToHexString(data) : "(none)"]);
+        fields.push(["LRC", "0x" + toHexByte(receivedLrc)]);
+
+      } else if (analyzerMode === "tcp") {
+        mode = "TCP";
+        const bytes = parseHexBytes(raw);
+        if (bytes.length < 8) throw new Error("A TCP frame needs at least 8 bytes (7-byte MBAP header + function code).");
+        const txn = (bytes[0] << 8) | bytes[1];
+        const proto = (bytes[2] << 8) | bytes[3];
+        const length = (bytes[4] << 8) | bytes[5];
+        const unitId = bytes[6];
+        const fc = bytes[7];
+        const data = bytes.slice(8);
+        const exc = (fc & 0x80) ? data[0] : undefined;
+        checkLabel = "No checksum in Modbus TCP — integrity is handled by TCP/Ethernet";
+        if (proto !== 0) {
+          checkLabel += " (note: Protocol ID is 0x" + proto.toString(16).padStart(4,"0") + ", not 0x0000 — unusual for real Modbus TCP)";
+        }
+        fields.push(["Transaction ID", "0x" + txn.toString(16).toUpperCase().padStart(4, "0")]);
+        fields.push(["Protocol ID", "0x" + proto.toString(16).toUpperCase().padStart(4, "0")]);
+        fields.push(["Length field", length + " bytes (actual remaining: " + (bytes.length - 6) + ")"]);
+        fields.push(["Unit ID", "0x" + toHexByte(unitId) + " (" + unitId + ")"]);
+        fields.push(["Function", fcLabel(fc, exc)]);
+        fields.push(["Data", data.length ? bytesToHexString(data) : "(none)"]);
+
+      } else {
+        mode = "RTU";
+        const bytes = parseHexBytes(raw);
+        if (bytes.length < 4) throw new Error("A valid RTU frame needs at least 4 bytes (address + function + 2-byte CRC).");
+        const base = bytes.slice(0, bytes.length - 2);
+        const recCrcLo = bytes[bytes.length - 2], recCrcHi = bytes[bytes.length - 1];
+        const received = (recCrcHi << 8) | recCrcLo;
+        const computed = crc16modbus(base);
+        checkOk = (received === computed);
+        checkLabel = "CRC " + (checkOk ? "valid" : "MISMATCH") + " (received " + toHexByte(recCrcLo) + " " + toHexByte(recCrcHi) +
+          ", computed " + toHexByte(computed & 0xFF) + " " + toHexByte((computed >> 8) & 0xFF) + ")";
+        const addr = base[0], fc = base[1], data = base.slice(2);
+        const exc = (fc & 0x80) ? data[0] : undefined;
+        fields.push(["Address", "0x" + toHexByte(addr) + " (" + addr + ")"]);
+        fields.push(["Function", fcLabel(fc, exc)]);
+        fields.push(["Data", data.length ? bytesToHexString(data) : "(none)"]);
+        fields.push(["CRC-16", toHexByte(recCrcLo) + " " + toHexByte(recCrcHi)]);
+      }
+
+      const modeBadge = document.getElementById("an-mode-badge");
+      modeBadge.textContent = "Mode: " + mode;
+      modeBadge.className = "status-badge ok";
+      const checkBadge = document.getElementById("an-check-badge");
+      checkBadge.textContent = checkLabel;
+      checkBadge.className = "status-badge " + (checkOk === false ? "bad" : "ok");
+
+      fields.forEach(([n, v]) => fieldsEl.appendChild(makeFieldRow(n, v)));
+      outputEl.style.display = "block";
+
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  });
+
+  /* ---------- Baud Rate Timing Calculator ---------- */
+  document.getElementById("tm-run").addEventListener("click", () => {
+    const baud = parseInt(document.getElementById("tm-baud").value, 10);
+    const parity = document.getElementById("tm-parity").value;
+    const stopBits = (parity === "none") ? 2 : 1;
+    const parityBit = (parity === "none") ? 0 : 1;
+    const bitsPerChar = 1 /* start */ + 8 /* data */ + parityBit + stopBits;
+    const charTimeMs = (bitsPerChar / baud) * 1000;
+
+    let frameGapMs, charGapMs, note;
+    if (baud > 19200) {
+      frameGapMs = 1.75;
+      charGapMs = 0.75;
+      note = "Baud rate is above 19200, so per the Modbus spec, fixed timings of 1.75 ms / 0.75 ms are used instead of the raw character-time calculation.";
+    } else {
+      frameGapMs = 3.5 * charTimeMs;
+      charGapMs = 1.5 * charTimeMs;
+      note = "These are the minimum silence intervals the spec requires — a master's actual response timeout should be comfortably longer, since slave processing delay (not frame timing) is usually what dominates.";
+    }
+
+    document.getElementById("tm-bits").textContent = bitsPerChar + " bits (1 start + 8 data + " + parityBit + " parity + " + stopBits + " stop)";
+    document.getElementById("tm-chartime").textContent = charTimeMs.toFixed(3) + " ms";
+    document.getElementById("tm-frame-gap").textContent = frameGapMs.toFixed(3) + " ms";
+    document.getElementById("tm-char-gap").textContent = charGapMs.toFixed(3) + " ms";
+    document.getElementById("tm-note").textContent = note;
+  });
+  document.getElementById("tm-run").click(); // compute once with defaults on load
+})();
+</script>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karthik's Handbook</title>
+<meta name="description" content="A growing collection of technical reference guides and tutorials.">
+<meta name="theme-color" content="#3a5a78">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --accent-soft:#e1e9f0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --accent-soft:#1c2d3d;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --accent-soft:#1c2d3d;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  header{padding:48px 24px 36px;border-bottom:1px solid var(--line);}
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px;}
+  header .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 10px;
+  }
+  header h1{font-size:2.2rem;margin:0 0 10px;text-wrap:balance;}
+  header p{color:var(--muted);font-size:1.02rem;max-width:60ch;margin:0;}
+
+  main{max-width:900px;margin:0 auto;padding:36px 24px 80px;}
+  .section-label{
+    font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 16px;
+  }
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .card{
+    display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:22px 24px;text-decoration:none;color:var(--ink);
+    transition:border-color .15s,transform .15s;
+  }
+  .card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .card .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--accent);
+  }
+  .card h2{font-size:1.25rem;margin:2px 0 0;}
+  .card p{color:var(--muted);font-size:.9rem;margin:0;}
+  .card .open{margin-top:8px;font-size:.82rem;font-weight:600;color:var(--accent);}
+  .card .open::after{content:" \2192";}
+
+  .empty-note{color:var(--muted);font-size:.9rem;margin-top:24px;padding:16px 20px;border:1px dashed var(--line);border-radius:10px;}
+
+  footer{border-top:1px solid var(--line);padding:20px 24px;text-align:center;color:var(--muted);font-size:.82rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Technical Reference</p>
+    <h1>Karthik's Handbook</h1>
+    <p>A growing collection of deep-dive tutorials and field references — pick a subject below.</p>
+  </div>
+</header>
+
+<main>
+  <p class="section-label">Subjects</p>
+  <div class="grid">
+    <a class="card" href="subjects/modbus-rtu-tcp.html">
+      <span class="tag">Industrial Protocols</span>
+      <h2>Modbus RTU/TCP</h2>
+      <p>Basic-to-advanced tutorial with frame structure, CRC/LRC, timing, vendor quirks, a protocol comparison, practice exercises, and a live toolkit (frame builder/analyzer, register decoder, timing calculator, field troubleshooting checklists).</p>
+      <span class="open">Open</span>
+    </a>
+  </div>
+
+  <p class="empty-note">More subjects will appear here as they're added.</p>
+</main>
+
+<footer>Karthik's Handbook</footer>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
+</script>
+
+</body>
+</html>
