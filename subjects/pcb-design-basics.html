@@ -1,0 +1,767 @@
+<title>PCB Design Basics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --layout:#b3701f; --layout-soft:#f6ead5; --layout-ink:#7a4c12;
+    --schem:#1f7a8c; --schem-soft:#dcedf0; --schem-ink:#145561;
+    --code-bg:#121b24; --code-fg:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --layout:#e0a04a; --layout-soft:#332410; --layout-ink:#f2cd94;
+      --schem:#4fc0d4; --schem-soft:#0f2b30; --schem-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-fg:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --layout:#e0a04a; --layout-soft:#332410; --layout-ink:#f2cd94;
+    --schem:#4fc0d4; --schem-soft:#0f2b30; --schem-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-fg:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .sub{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+
+  .nav-search{position:relative;margin:4px 8px 6px;}
+  .nav-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .nav-search input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.85rem;padding:8px 10px 8px 32px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .nav-search input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .nav-search-results{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:360px;overflow-y:auto;z-index:50;display:none;
+  }
+  .nav-search-results.open{display:block;}
+  .nav-search-results a{
+    display:block;padding:9px 12px;text-decoration:none;color:var(--ink);font-size:.84rem;border-bottom:1px solid var(--line-soft);
+  }
+  .nav-search-results a:last-child{border-bottom:none;}
+  .nav-search-results a:hover, .nav-search-results a.sel{background:var(--line-soft);}
+  .nav-search-results .r-kind{
+    font-family:"IBM Plex Mono",monospace;font-size:.65rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:2px;
+  }
+  .nav-search-results .r-empty{padding:14px 12px;color:var(--muted);font-size:.83rem;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.layout-link{border-left:3px solid var(--layout);padding-left:9px;}
+  nav.side a.schem-link{border-left:3px solid var(--schem);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner .n{font-size:1.1rem;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .domain-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .domain-box.layout{border-left-color:var(--layout);}
+  .domain-box.schem{border-left-color:var(--schem);}
+  .domain-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .domain-box.layout .tag{background:var(--layout-soft);color:var(--layout-ink);}
+  .domain-box.schem .tag{background:var(--schem-soft);color:var(--schem-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-fg);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .diagram{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .diagram svg{width:100%;height:auto;display:block;}
+  .diagram figcaption{margin-top:10px;color:var(--muted);font-size:.86rem;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .mode-toggle{display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
+  .mode-toggle button{
+    font-family:"IBM Plex Mono",monospace;font-size:.8rem;font-weight:600;padding:7px 16px;border-radius:999px;
+    border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer;
+  }
+  .mode-toggle button.active{background:var(--accent-fill);border-color:var(--accent-fill);color:#fff;}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-output{margin-top:18px;}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;}
+  .result-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .result-card .r-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .result-card .r-value{font-family:"IBM Plex Mono",monospace;font-size:1.15rem;font-weight:600;margin-top:4px;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">PCB Design Basics<span class="sub">Basic &rarr; Advanced</span></p>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="page-search-input" placeholder="Search this page..." autocomplete="off">
+      <div class="nav-search-results" id="page-search-results"></div>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#trace-width-tool">IPC-2221 Trace Width Calculator</a>
+      <a href="#copper-weight-tool">Copper Weight &harr; Thickness</a>
+      <a href="#trace-vdrop-tool">Trace Resistance &amp; Voltage Drop</a>
+      <a href="#decoupling-guide">Decoupling Capacitor Guide</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a class="layout-link" href="#why-pcb">From Breadboard to PCB</a>
+      <a class="schem-link" href="#design-workflow">The PCB Design Workflow</a>
+      <a class="schem-link" href="#schematic-capture">Schematic Capture Basics</a>
+      <a class="layout-link" href="#tht-vs-smd">Through-Hole vs Surface Mount</a>
+      <a class="layout-link" href="#footprints">Footprints &amp; the Schematic Link</a>
+      <a class="schem-link" href="#choosing-software">Choosing Design Software</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="layout-link" href="#copper-weight">Copper Weight &amp; Trace Thickness</a>
+      <a class="layout-link" href="#ipc2221">Sizing Traces for Current: IPC-2221</a>
+      <a class="layout-link" href="#trace-resistance">Trace Resistance &amp; Voltage Drop</a>
+      <a class="layout-link" href="#vias">Vias: Connecting Layers</a>
+      <a class="layout-link" href="#layer-stackup">Layer Stackup Basics</a>
+      <a class="schem-link" href="#drc">Design Rule Check (DRC)</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced</p>
+      <a class="layout-link" href="#power-integrity">Power Integrity: Decoupling &amp; Planes</a>
+      <a class="layout-link" href="#signal-integrity">Signal Integrity: Return Paths</a>
+      <a class="layout-link" href="#thermal-design">Thermal Design on a PCB</a>
+      <a class="schem-link" href="#dfm-dfa">Design for Manufacturing &amp; Assembly</a>
+      <a class="schem-link" href="#fab-files">From Design Files to a Physical Board</a>
+      <a class="layout-link" href="#worked-board-example">A Worked Board Example</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Hardware Design Reference</p>
+      <h1>PCB Design Basics</h1>
+      <p class="lede">A guided path from "why bother with a real board" through schematic capture and layout, into sizing copper for real current, layer stackups, and the actual files that turn a design into a physical, assembled board. Copper-tagged sections are layout/physical; teal-tagged sections are schematic/process.</p>
+    </header>
+
+    <!-- ============ TOOLS ============ -->
+
+    <section class="topic" id="trace-width-tool">
+      <h2>IPC-2221 Trace Width Calculator</h2>
+      <p>The industry-standard empirical formula for sizing a copper trace to carry a given current without exceeding a target temperature rise: <code>Area(mils&sup2;) = (I / (k &times; &Delta;T<sup>0.44</sup>))<sup>1/0.725</sup></code>, where k = 0.048 for external (top/bottom) traces and 0.024 for internal (buried) traces.</p>
+      <div class="tool-panel">
+        <div class="mode-toggle" role="group" aria-label="Trace layer">
+          <button type="button" class="tw-mode-btn active" data-mode="ext">External (top/bottom)</button>
+          <button type="button" class="tw-mode-btn" data-mode="int">Internal (buried)</button>
+        </div>
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="tw-current">Current, A</label>
+            <input type="text" id="tw-current" value="1">
+          </div>
+          <div class="tool-field">
+            <label for="tw-temp">Allowed temperature rise, &deg;C</label>
+            <input type="text" id="tw-temp" value="10">
+          </div>
+          <div class="tool-field">
+            <label for="tw-copper">Copper weight, oz</label>
+            <select id="tw-copper">
+              <option value="0.5">0.5oz</option>
+              <option value="1" selected>1oz</option>
+              <option value="2">2oz</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="tw-calc">Calculate</button>
+        <div class="result-grid" id="tw-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="copper-weight-tool">
+      <h2>Copper Weight &harr; Thickness</h2>
+      <p>PCB copper is specified by weight (oz/ft&sup2;) rather than thickness directly &mdash; <code>1oz = 1.37 mils = 0.0349mm</code>.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="cw-oz">Copper weight, oz</label>
+            <input type="text" id="cw-oz" value="1">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="cw-calc">Calculate</button>
+        <div class="result-grid" id="cw-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="trace-vdrop-tool">
+      <h2>Trace Resistance &amp; Voltage Drop</h2>
+      <p>The same copper-resistivity approach as the Control Panel Design tutorial's wire voltage-drop calculator, applied to a flat PCB trace's rectangular cross-section instead of round wire.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="tv-width">Trace width, mils</label>
+            <input type="text" id="tv-width" value="50">
+          </div>
+          <div class="tool-field">
+            <label for="tv-length">Trace length, mm</label>
+            <input type="text" id="tv-length" value="100">
+          </div>
+          <div class="tool-field">
+            <label for="tv-copper">Copper weight, oz</label>
+            <select id="tv-copper">
+              <option value="0.5">0.5oz</option>
+              <option value="1" selected>1oz</option>
+              <option value="2">2oz</option>
+            </select>
+          </div>
+          <div class="tool-field">
+            <label for="tv-current">Current, A</label>
+            <input type="text" id="tv-current" value="2">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="tv-calc">Calculate</button>
+        <div class="result-grid" id="tv-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="decoupling-guide">
+      <h2>Decoupling Capacitor Guide</h2>
+      <p>A rule-of-thumb reference, not a calculation &mdash; real values should follow the specific IC's datasheet when it specifies one.</p>
+      <div class="tool-panel">
+        <div class="result-grid" style="display:grid;">
+          <div class="result-card"><div class="r-label">Every IC power pin</div><div class="r-value" style="font-size:.95rem;">100nF ceramic, placed as close to the pin as physically possible</div></div>
+          <div class="result-card"><div class="r-label">Per board / connector</div><div class="r-value" style="font-size:.95rem;">10&ndash;100&micro;F bulk capacitance (electrolytic or tantalum)</div></div>
+          <div class="result-card"><div class="r-label">Fast digital/RF ICs</div><div class="r-value" style="font-size:.95rem;">add a smaller 10nF in parallel with the 100nF for higher-frequency noise</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="why-pcb">
+      <h2>From Breadboard to PCB</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>A breadboard prototype &mdash; the natural output of the Arduino and ESP32 tutorials' worked examples &mdash; is fast to build and change, but fragile: loose connections, parasitic capacitance from the long jumper wires, and nothing holding it together if the project gets physically moved or bumped. A PCB fixes exact component positions and connections permanently (or at least until deliberately reworked), removes the breadboard's own electrical imperfections, and is what turns a one-off prototype into something reproducible &mdash; ten identical boards are no harder to order than one.</p>
+    </section>
+
+    <section class="topic" id="design-workflow">
+      <h2>The PCB Design Workflow</h2>
+      <div class="domain-box schem"><span class="tag">Process</span></div>
+      <figure class="diagram">
+        <svg viewBox="0 0 640 140" role="img" aria-label="PCB design workflow: schematic capture defines components and connections, which generates a netlist; footprints and layout place physical component outlines on the board guided by that netlist; routing draws the actual copper traces connecting them; design rule check verifies manufacturing constraints are met; then fabrication files, gerbers and drill files, are generated and sent to a board manufacturer.">
+          <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">
+            <rect x="10" y="40" width="100" height="50" rx="6" fill="none" stroke="var(--schem)" stroke-width="1.8"/>
+            <text x="60" y="60" text-anchor="middle" fill="var(--schem)">Schematic</text>
+            <text x="60" y="74" text-anchor="middle" fill="var(--schem)" font-size="9">capture</text>
+
+            <line x1="110" y1="65" x2="148" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="148,65 140,61 140,69" fill="currentColor"/>
+            <text x="129" y="55" text-anchor="middle" font-size="9">netlist</text>
+
+            <rect x="150" y="40" width="110" height="50" rx="6" fill="none" stroke="var(--layout)" stroke-width="1.8"/>
+            <text x="205" y="60" text-anchor="middle" fill="var(--layout)">Footprints &amp;</text>
+            <text x="205" y="74" text-anchor="middle" fill="var(--layout)" font-size="9">layout</text>
+
+            <line x1="260" y1="65" x2="298" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="298,65 290,61 290,69" fill="currentColor"/>
+
+            <rect x="300" y="40" width="90" height="50" rx="6" fill="none" stroke="var(--layout)" stroke-width="1.8"/>
+            <text x="345" y="65" text-anchor="middle" fill="var(--layout)">Routing</text>
+
+            <line x1="390" y1="65" x2="428" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="428,65 420,61 420,69" fill="currentColor"/>
+
+            <rect x="430" y="40" width="80" height="50" rx="6" fill="none" stroke="var(--schem)" stroke-width="1.8"/>
+            <text x="470" y="65" text-anchor="middle" fill="var(--schem)">DRC</text>
+
+            <line x1="510" y1="65" x2="548" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="548,65 540,61 540,69" fill="currentColor"/>
+
+            <rect x="550" y="40" width="80" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="590" y="60" text-anchor="middle">Gerbers &amp;</text>
+            <text x="590" y="74" text-anchor="middle" font-size="9">fab files</text>
+          </g>
+        </svg>
+        <figcaption>Each stage constrains the next: the schematic's netlist (every intended connection) is what the layout tool checks routing against, and DRC is the final gate confirming the physical result is actually manufacturable before files ever reach a fab house.</figcaption>
+      </figure>
+    </section>
+
+    <section class="topic" id="schematic-capture">
+      <h2>Schematic Capture Basics</h2>
+      <div class="domain-box schem"><span class="tag">Process</span></div>
+      <p>A schematic is a symbolic, not physical, representation of a circuit &mdash; components drawn as standard symbols, connected by wires representing electrical nets (every point on a net is electrically the same node). Labeled nets (naming a wire <code>+5V</code> or <code>MODBUS_TX</code> rather than drawing it crossing the whole sheet) keep complex schematics readable; larger designs split into hierarchical sheets, one per functional block (power supply, microcontroller, I/O), echoing the same "break it into manageable pieces" principle as the PLC Learning tutorial's program organization section.</p>
+    </section>
+
+    <section class="topic" id="tht-vs-smd">
+      <h2>Through-Hole vs Surface Mount</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Through-hole (THT)</th><th>Surface mount (SMD)</th></tr></thead>
+          <tbody>
+            <tr><td>Mounting</td><td>leads through drilled holes, soldered on the opposite side</td><td>pads on the same surface as the component</td></tr>
+            <tr><td>Hand assembly</td><td>easy, forgiving</td><td>harder at small sizes, but most common sizes (0805, SOIC) are hand-solderable with practice</td></tr>
+            <tr><td>Board size</td><td>larger footprint, holes take board space on every layer</td><td>much smaller, enables dense boards</td></tr>
+            <tr><td>Mechanical strength</td><td>strong &mdash; good for connectors, large components</td><td>weaker per-joint, fine for light components</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Most real boards mix both: SMD for the bulk of small logic/passive components, THT for connectors and anything needing real mechanical strength (board edge connectors, large electrolytic capacitors, anything that gets physically stressed in use).</p>
+    </section>
+
+    <section class="topic" id="footprints">
+      <h2>Footprints &amp; the Schematic Link</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>A <strong>footprint</strong> is the physical land pattern &mdash; pad shapes, sizes, and spacing &mdash; matching a specific component package, linked to that component's schematic symbol. The link matters enormously: a schematic symbol assigned the wrong footprint (a resistor's symbol linked to a connector's footprint, or simply the wrong package size) produces a board that's electrically correct on paper but physically impossible to assemble, usually not caught until the boards and parts have both already arrived.</p>
+    </section>
+
+    <section class="topic" id="choosing-software">
+      <h2>Choosing Design Software</h2>
+      <div class="domain-box schem"><span class="tag">Process</span></div>
+      <p><strong>KiCad</strong> is the standard free, open-source starting point &mdash; a complete schematic capture, layout, and 3D-preview toolchain with no cost barrier and a large library of community footprints, capable of professional-grade boards well beyond hobbyist scale. Commercial alternatives (Altium Designer, Eagle, and others) add polish and some workflow conveniences at real licensing cost, generally worth it once a team or production volume justifies it rather than for a first board.</p>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+
+    <div class="level-banner intermediate"><span class="n">&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="copper-weight">
+      <h2>Copper Weight &amp; Trace Thickness</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>PCB copper is specified by weight per unit area rather than a direct thickness measurement &mdash; a holdover from how copper foil is actually manufactured and sold. <strong>1oz copper (1.37 mils / 35&micro;m) is the default</strong> for the overwhelming majority of designs; <strong>2oz</strong> doubles the thickness, used where higher current or lower trace resistance is needed without impractically wide traces. Both the trace-width and trace-resistance calculators above take copper weight as a direct input, since thickness is exactly what determines a trace's cross-sectional area for a given width.</p>
+    </section>
+
+    <section class="topic" id="ipc2221">
+      <h2>Sizing Traces for Current: IPC-2221</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>A trace that's too narrow for its current overheats &mdash; potentially enough to damage the board's substrate or the trace itself. The IPC-2221 standard provides an empirical formula (not a simple linear rule) relating current, allowed temperature rise, and required cross-sectional area:</p>
+      <pre>Area (mils&sup2;) = (I / (k &times; &Delta;T^0.44))^(1/0.725)
+Width (mils) = Area / thickness</pre>
+      <p><strong>Worked example:</strong> 1A, 10&deg;C allowed rise, external trace, 1oz copper &rarr; <code>Area &asymp; 16.3 mils&sup2;</code>, giving a width of about <strong>11.9 mils</strong> (&asymp;0.3mm). The same current and temperature rise on an <strong>internal</strong> trace needs roughly <strong>31 mils</strong> &mdash; about 2.6&times; the area &mdash; because a buried trace has no direct air cooling and must shed its heat entirely through the surrounding board material. Confirm both in the calculator above.</p>
+      <div class="callout warn">
+        <strong>This is a thermal limit, not a safety margin</strong>
+        IPC-2221 sizes traces to control self-heating, not to provide headroom against fault conditions the way a circuit breaker does. For anything carrying meaningful current in a safety-relevant application, add real margin beyond the bare minimum this formula returns.
+      </div>
+    </section>
+
+    <section class="topic" id="trace-resistance">
+      <h2>Trace Resistance &amp; Voltage Drop</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>Beyond simply not overheating, a long or narrow trace carrying real current also drops real voltage &mdash; the same concern as the Control Panel Design tutorial's wire voltage-drop section, just at PCB scale with a rectangular rather than round conductor: <code>R = &rho; &times; L / (W &times; T)</code>. <strong>Worked example:</strong> a 50-mil-wide, 100mm-long, 1oz trace has a resistance of about <code>0.038&Omega;</code>; at 2A, that's a <code>0.076V</code> drop &mdash; small in absolute terms, but worth checking explicitly for long power-supply traces feeding sensitive analog circuitry, where even tens of millivolts can matter.</p>
+    </section>
+
+    <section class="topic" id="vias">
+      <h2>Vias: Connecting Layers</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>A <strong>via</strong> is a plated hole connecting copper on different layers &mdash; the layer-to-layer equivalent of a wire jumper. Standard through-hole vias run the full board thickness; more advanced (and more expensive) techniques include blind vias (connecting an outer layer to an inner one, not all the way through) and buried vias (connecting only inner layers, invisible from either surface) &mdash; both used to pack denser routing on complex multi-layer boards, well beyond what a first design typically needs.</p>
+    </section>
+
+    <section class="topic" id="layer-stackup">
+      <h2>Layer Stackup Basics</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <figure class="diagram">
+        <svg viewBox="0 0 560 190" role="img" aria-label="Two layer stackup compared to four layer stackup: a two layer board has signal copper on top and bottom with dielectric between; a four layer board adds a dedicated ground plane and power plane as the two inner layers, giving signal traces on the outer layers a clean, close return path directly beneath them, which is the main signal integrity benefit of going to four layers, not simply having more routing space.">
+          <g font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">
+            <text x="110" y="20" text-anchor="middle" font-size="12" font-weight="600">2-layer</text>
+            <rect x="30" y="35" width="160" height="14" fill="var(--layout)"/>
+            <text x="200" y="46" font-size="9">Top signal</text>
+            <rect x="30" y="49" width="160" height="30" fill="var(--line-soft)"/>
+            <text x="200" y="67" font-size="9">dielectric</text>
+            <rect x="30" y="79" width="160" height="14" fill="var(--layout)"/>
+            <text x="200" y="90" font-size="9">Bottom signal</text>
+
+            <text x="420" y="20" text-anchor="middle" font-size="12" font-weight="600">4-layer</text>
+            <rect x="340" y="35" width="160" height="12" fill="var(--layout)"/>
+            <text x="510" y="45" font-size="9">Top signal</text>
+            <rect x="340" y="47" width="160" height="10" fill="var(--line-soft)"/>
+            <rect x="340" y="57" width="160" height="12" fill="var(--schem)"/>
+            <text x="510" y="67" font-size="9">Ground plane</text>
+            <rect x="340" y="69" width="160" height="10" fill="var(--line-soft)"/>
+            <rect x="340" y="79" width="160" height="12" fill="var(--warn)"/>
+            <text x="510" y="89" font-size="9">Power plane</text>
+            <rect x="340" y="91" width="160" height="10" fill="var(--line-soft)"/>
+            <rect x="340" y="101" width="160" height="12" fill="var(--layout)"/>
+            <text x="510" y="111" font-size="9">Bottom signal</text>
+
+            <text x="420" y="145" text-anchor="middle" font-size="9">every signal trace has a solid plane directly adjacent —</text>
+            <text x="420" y="159" text-anchor="middle" font-size="9">a short, clean return path right beneath it</text>
+          </g>
+        </svg>
+        <figcaption>The real benefit of 4 layers over 2 isn't just double the routing space &mdash; it's that dedicated ground and power planes give every signal trace a close, low-impedance return path directly beneath it, which is the physical basis for the signal integrity improvements covered next.</figcaption>
+      </figure>
+    </section>
+
+    <section class="topic" id="drc">
+      <h2>Design Rule Check (DRC)</h2>
+      <div class="domain-box schem"><span class="tag">Process</span></div>
+      <p>Before any design is sent to fabrication, DRC automatically checks the layout against a set of manufacturing and electrical constraints: minimum trace width and spacing (narrower than the fab can reliably produce means broken or shorted traces), minimum via/hole sizes, clearance from the board edge, and that every net in the schematic actually has a corresponding, fully-connected copper path (an unrouted or partially routed net is exactly the kind of mistake DRC exists to catch before it becomes an expensive, unusable board). Running DRC clean is a hard gate before ordering, not an optional nicety.</p>
+    </section>
+
+    <!-- ============ ADVANCED ============ -->
+
+    <div class="level-banner advanced"><span class="n">&#9679;</span> Advanced</div>
+
+    <section class="topic" id="power-integrity">
+      <h2>Power Integrity: Decoupling &amp; Planes</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>Every IC's power pin needs a nearby decoupling capacitor &mdash; the same 100nF-per-pin pattern from the Electronics &amp; Instrumentation tutorial's capacitor section &mdash; placed as physically close to the pin as possible, so the capacitor (not a long trace back to the power supply) is what responds to the IC's fast, momentary current spikes. A solid ground plane (see Layer Stackup above) is the other half of this: it gives those return currents, and the decoupling capacitor's own loop, the shortest possible path, which directly reduces both noise and radiated EMI &mdash; the same underlying physics as the Control Panel Design tutorial's cable-segregation advice, just at board scale instead of panel scale.</p>
+    </section>
+
+    <section class="topic" id="signal-integrity">
+      <h2>Signal Integrity: Return Paths</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>A signal doesn't just travel down its trace &mdash; the return current travels back through whatever's nearest and lowest-impedance, ideally the solid ground plane directly underneath it. Route a trace across a <em>gap</em> or <em>split</em> in that ground plane, and the return current is forced to detour around the gap, creating a larger current loop that radiates more EMI and picks up more noise &mdash; a subtle, easy-to-introduce layout mistake with real consequences, especially for the fast-switching signals this Handbook's VFD and ESP32 tutorials already flag as noise sources. For truly high-speed or critical signals, <strong>controlled impedance</strong> routing (precise trace width/spacing/plane-distance combinations, calculated to hit a target impedance like 50&Omega; or 100&Omega; differential) goes a step further &mdash; a specialist topic in its own right, built entirely on this same return-path foundation.</p>
+    </section>
+
+    <section class="topic" id="thermal-design">
+      <h2>Thermal Design on a PCB</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>A copper pour (a large filled area of copper, often tied to ground) doubles as a basic heat spreader for a moderately hot component &mdash; a small regulator or driver IC &mdash; pulling heat away from the component into a larger thermal mass. Thermal vias (a cluster of vias under a hot component's thermal pad) carry that heat through to a copper pour on another layer, or to the opposite side of the board where airflow or a heatsink can remove it more effectively. For genuinely high-power components, this still only goes so far &mdash; the VFD tutorial's enclosure-level cooling options (fans, heat exchangers) exist precisely because board-level copper alone has real thermal limits.</p>
+    </section>
+
+    <section class="topic" id="dfm-dfa">
+      <h2>Design for Manufacturing &amp; Assembly</h2>
+      <div class="domain-box schem"><span class="tag">Process</span></div>
+      <p>DFM (manufacturability) and DFA (assembly) are the practical constraints a fab house and assembly house actually work within: minimum trace/space the fab's process can reliably hit, enough clearance around components for automated pick-and-place equipment, fiducial markers (reference marks the assembly machine's camera uses to align the board precisely), and panelization (multiple board copies arranged on one larger panel for efficient fabrication and assembly, then separated afterward). Designing with these constraints in mind from the start avoids a board that's electrically perfect but expensive or impossible to actually build at scale.</p>
+    </section>
+
+    <section class="topic" id="fab-files">
+      <h2>From Design Files to a Physical Board</h2>
+      <div class="domain-box schem"><span class="tag">Process</span></div>
+      <p>A finished, DRC-clean design exports to a standard set of manufacturing files:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Contains</th></tr></thead>
+          <tbody>
+            <tr><td>Gerber files</td><td>one file per copper/silkscreen/soldermask layer, the actual artwork the fab etches/prints</td></tr>
+            <tr><td>Drill file</td><td>every hole/via location and size</td></tr>
+            <tr><td>BOM (Bill of Materials)</td><td>every component, quantity, and part number &mdash; same role as the Control Panel Design tutorial's panel BOM, at board scale</td></tr>
+            <tr><td>Pick-and-place file</td><td>every component's exact position, rotation, and side of board &mdash; needed only if the fab is also assembling the board</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Most fab houses accept this exact file set directly through a web upload, often with an automated DRC pass of their own as a final check before manufacturing begins.</p>
+    </section>
+
+    <section class="topic" id="worked-board-example">
+      <h2>A Worked Board Example</h2>
+      <div class="domain-box layout"><span class="tag">Layout</span></div>
+      <p>Pulling this together: a small carrier board for an ESP32 (from the ESP32 &amp; IoT tutorial) driving a single relay channel. The schematic places the ESP32 module's footprint, a level-shifted GPIO output (the Raspberry Pi tutorial's 5V&rarr;3.3V concern runs the <em>other</em> direction here &mdash; the relay's drive transistor needs to accept the ESP32's 3.3V logic), a flyback diode across the relay coil, and the same 100nF decoupling capacitor pattern on the ESP32's power pins. Layout sizes the relay coil's trace using the IPC-2221 calculator above for its actual switching current, keeps that trace away from the ESP32's WiFi antenna area to avoid detuning it, and runs on a simple 2-layer stackup since nothing here needs 4-layer signal integrity. DRC confirms clearances before ordering Gerbers &mdash; the same workflow, end to end, this tutorial has walked through, applied to one concrete project drawn directly from elsewhere in this Handbook.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+
+    <div class="level-banner basic" id="practice-exercises" style="margin-top:56px;"><span class="n">&#9679;</span> Practice Exercises</div>
+
+    <section class="topic">
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Convert copper weight to thickness</summary>
+        <div class="ex-body">
+          <p>What's the thickness, in mils and millimetres, of 2oz copper?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>2 &times; 1.37 = 2.74 mils</code>, which is <code>2.74 &times; 0.0254 &asymp; 0.0696mm</code> (&asymp;70&micro;m).
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Choose THT or SMD for a connector</summary>
+        <div class="ex-body">
+          <p>A board needs a USB connector that will be plugged and unplugged frequently in the field. Should it be a through-hole or surface-mount part, and why?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <strong>Through-hole</strong> (or at minimum, an SMD part with additional through-hole mechanical anchor pins, common on connector-specific footprints). Repeated plug/unplug cycles put real mechanical stress on the joint, and through-hole soldering is substantially stronger than a surface-mount pad alone.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Size a trace using IPC-2221</summary>
+        <div class="ex-body">
+          <p>An external, 1oz copper trace needs to carry 1A with no more than 10&deg;C temperature rise. What width does IPC-2221 call for?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>Area = (1/(0.048&times;10^0.44))^(1/0.725) &asymp; 16.3 mils&sup2;</code>; dividing by the 1.37-mil thickness gives a width of about <strong>11.9 mils</strong> (&asymp;0.3mm). Confirm it in the calculator above.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Compute a trace's voltage drop</summary>
+        <div class="ex-body">
+          <p>A 50-mil-wide, 1oz, 100mm-long trace carries 2A. What's its resistance and voltage drop?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>R &asymp; 0.038&Omega;</code>; at 2A, <code>Vdrop = 2 &times; 0.038 &asymp; 0.076V</code>. Small in absolute terms, but worth checking for long analog power traces where tens of millivolts matter.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Explain why internal traces need to be wider</summary>
+        <div class="ex-body">
+          <p>For the same current and allowed temperature rise, an internal (buried) trace needs roughly 2.6&times; the cross-sectional area of an external trace. Why?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            An external trace is in direct contact with air, which helps carry heat away by convection. An internal trace is fully buried in solid dielectric material with no direct air cooling, so it must dissipate the same heat entirely through conduction into the surrounding board material &mdash; a less effective cooling path, reflected in IPC-2221's halved k constant (0.024 vs 0.048) for internal traces.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Diagnose a ground-plane routing mistake</summary>
+        <div class="ex-body">
+          <p>A 4-layer board has a solid ground plane on layer 2, but a fast digital signal trace on layer 1 is routed directly over a slot cut into that ground plane (for an unrelated mechanical reason). What problem does this create, and why?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            The signal's return current can no longer travel in a short, direct path on the plane immediately beneath the trace &mdash; it's forced to detour around the slot, creating a much larger current loop. That larger loop radiates more EMI and is more susceptible to picking up external noise, exactly the signal-integrity problem a solid ground plane is meant to prevent. The fix is routing the mechanical slot (or the trace) so the two never overlap, or adding a stitching via to give the return current a path across the gap.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  function num(id){ var v = document.getElementById(id).value.trim(); return v === '' ? null : parseFloat(v); }
+
+  // ---------- IPC-2221 trace width ----------
+  var twMode = 'ext';
+  document.querySelectorAll('.tw-mode-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tw-mode-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      twMode = btn.dataset.mode;
+    });
+  });
+  document.getElementById('tw-calc').addEventListener('click', function(){
+    var I = num('tw-current'), dT = num('tw-temp'), oz = parseFloat(document.getElementById('tw-copper').value);
+    if (I===null || dT===null || dT<=0) return;
+    var k = twMode==='ext' ? 0.048 : 0.024;
+    var area = Math.pow(I/(k*Math.pow(dT,0.44)), 1/0.725);
+    var thicknessMils = oz*1.37;
+    var widthMils = area/thicknessMils;
+    var out = document.getElementById('tw-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Required area</div><div class="r-value">' + area.toPrecision(4).replace(/\.?0+$/,'') + ' mils&sup2;</div></div>' +
+      '<div class="result-card"><div class="r-label">Trace width</div><div class="r-value">' + widthMils.toPrecision(4).replace(/\.?0+$/,'') + ' mils</div></div>' +
+      '<div class="result-card"><div class="r-label">In mm</div><div class="r-value">' + (widthMils*0.0254).toPrecision(3) + ' mm</div></div>';
+  });
+
+  // ---------- Copper weight converter ----------
+  document.getElementById('cw-calc').addEventListener('click', function(){
+    var oz = num('cw-oz');
+    if (oz===null) return;
+    var mils = oz*1.37;
+    var mm = mils*0.0254;
+    var um = mm*1000;
+    var out = document.getElementById('cw-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Thickness</div><div class="r-value">' + mils.toPrecision(4).replace(/\.?0+$/,'') + ' mils</div></div>' +
+      '<div class="result-card"><div class="r-label">In mm</div><div class="r-value">' + mm.toPrecision(3) + ' mm</div></div>' +
+      '<div class="result-card"><div class="r-label">In &micro;m</div><div class="r-value">' + um.toFixed(1) + ' &micro;m</div></div>';
+  });
+
+  // ---------- Trace resistance & voltage drop ----------
+  var RHO_CU = 1.68e-8;
+  document.getElementById('tv-calc').addEventListener('click', function(){
+    var widthMils = num('tv-width'), lengthMm = num('tv-length'), current = num('tv-current');
+    var oz = parseFloat(document.getElementById('tv-copper').value);
+    if (widthMils===null || lengthMm===null || current===null) return;
+    var widthM = widthMils*0.0254e-3;
+    var thicknessM = oz*1.37*0.0254e-3;
+    var lengthM = lengthMm/1000;
+    var R = RHO_CU*lengthM/(widthM*thicknessM);
+    var vdrop = current*R;
+    var out = document.getElementById('tv-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Resistance</div><div class="r-value">' + R.toPrecision(4).replace(/\.?0+$/,'') + ' &#937;</div></div>' +
+      '<div class="result-card"><div class="r-label">Voltage drop</div><div class="r-value">' + vdrop.toPrecision(4).replace(/\.?0+$/,'') + ' V</div></div>';
+  });
+
+  // ---------- In-page search ----------
+  var searchIndex = [];
+  document.querySelectorAll('section.topic[id]').forEach(function(sec){
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    searchIndex.push({ kind: 'Section', title: h2.textContent, id: sec.id, text: sec.textContent.toLowerCase() });
+  });
+  document.querySelectorAll('details.ex').forEach(function(ex, i){
+    var summary = ex.querySelector('summary');
+    var title = summary.textContent.replace(/^(Basic|Intermediate|Advanced)\s*/i, '').trim();
+    if (!ex.id) ex.id = 'ex-auto-' + i;
+    searchIndex.push({ kind: 'Exercise', title: title, id: ex.id, text: ex.textContent.toLowerCase(), isEx: true });
+  });
+
+  var input = document.getElementById('page-search-input');
+  var results = document.getElementById('page-search-results');
+
+  function renderResults(list){
+    if (list.length === 0){ results.innerHTML = '<div class="r-empty">No matches.</div>'; results.classList.add('open'); return; }
+    results.innerHTML = list.slice(0,12).map(function(r){
+      return '<a href="#' + r.id + '" data-id="' + r.id + '" data-ex="' + (r.isEx?'1':'0') + '"><span class="r-kind">' + r.kind + '</span>' + r.title + '</a>';
+    }).join('');
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', function(){
+    var q = input.value.trim().toLowerCase();
+    if (!q){ results.classList.remove('open'); return; }
+    var matches = searchIndex.filter(function(item){ return item.text.indexOf(q) !== -1; });
+    renderResults(matches);
+  });
+
+  results.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if (!a) return;
+    var isEx = a.dataset.ex === '1';
+    if (isEx){
+      e.preventDefault();
+      var id = a.dataset.id;
+      var el = document.getElementById(id);
+      if (el){
+        el.open = true;
+        setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); }, 30);
+      }
+      results.classList.remove('open');
+      input.value = '';
+    } else {
+      results.classList.remove('open');
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!results.contains(e.target) && e.target !== input){ results.classList.remove('open'); }
+  });
+})();
+</script>
