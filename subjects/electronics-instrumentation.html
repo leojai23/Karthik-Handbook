@@ -1,0 +1,1187 @@
+<title>Basic Electronics &amp; Instrumentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --elec:#b3701f; --elec-soft:#f6ead5; --elec-ink:#7a4c12;
+    --inst:#1f7a8c; --inst-soft:#dcedf0; --inst-ink:#145561;
+    --code-bg:#121b24; --code-ink:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --elec:#e0a04a; --elec-soft:#332410; --elec-ink:#f2cd94;
+      --inst:#4fc0d4; --inst-soft:#0f2b30; --inst-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-ink:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --elec:#e0a04a; --elec-soft:#332410; --elec-ink:#f2cd94;
+    --inst:#4fc0d4; --inst-soft:#0f2b30; --inst-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-ink:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .sub{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+
+  .nav-search{position:relative;margin:4px 8px 6px;}
+  .nav-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .nav-search input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.85rem;padding:8px 10px 8px 32px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .nav-search input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .nav-search-results{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:360px;overflow-y:auto;z-index:50;display:none;
+  }
+  .nav-search-results.open{display:block;}
+  .nav-search-results a{
+    display:block;padding:9px 12px;text-decoration:none;color:var(--ink);font-size:.84rem;border-bottom:1px solid var(--line-soft);
+  }
+  .nav-search-results a:last-child{border-bottom:none;}
+  .nav-search-results a:hover, .nav-search-results a.sel{background:var(--line-soft);}
+  .nav-search-results .r-kind{
+    font-family:"IBM Plex Mono",monospace;font-size:.65rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:2px;
+  }
+  .nav-search-results .r-empty{padding:14px 12px;color:var(--muted);font-size:.83rem;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.elec-link{border-left:3px solid var(--elec);padding-left:9px;}
+  nav.side a.inst-link{border-left:3px solid var(--inst);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner .n{font-size:1.1rem;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .domain-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .domain-box.elec{border-left-color:var(--elec);}
+  .domain-box.inst{border-left-color:var(--inst);}
+  .domain-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .domain-box.elec .tag{background:var(--elec-soft);color:var(--elec-ink);}
+  .domain-box.inst .tag{background:var(--inst-soft);color:var(--inst-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .diagram{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .diagram svg{width:100%;height:auto;display:block;}
+  .diagram figcaption{margin-top:10px;color:var(--muted);font-size:.86rem;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .mode-toggle{display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
+  .mode-toggle button{
+    font-family:"IBM Plex Mono",monospace;font-size:.8rem;font-weight:600;padding:7px 16px;border-radius:999px;
+    border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer;
+  }
+  .mode-toggle button.active{background:var(--accent-fill);border-color:var(--accent-fill);color:#fff;}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-output{margin-top:18px;}
+  .tool-error{color:var(--warn);font-size:.85rem;margin-top:8px;font-family:"IBM Plex Mono",monospace;}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;}
+  .result-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .result-card .r-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .result-card .r-value{font-family:"IBM Plex Mono",monospace;font-size:1.15rem;font-weight:600;margin-top:4px;}
+
+  .swatch-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0;}
+  .swatch{width:34px;height:52px;border-radius:4px;border:1px solid rgba(0,0,0,.25);flex:none;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">Electronics &amp; Instrumentation<span class="sub">Basic &rarr; Advanced</span></p>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="page-search-input" placeholder="Search this page..." autocomplete="off">
+      <div class="nav-search-results" id="page-search-results"></div>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#ohms-calc">Ohm's Law &amp; Power Calculator</a>
+      <a href="#resistor-decoder">Resistor Colour Code Decoder</a>
+      <a href="#voltage-divider">Voltage Divider Calculator</a>
+      <a href="#rc-filter-calc">RC Filter Cutoff Calculator</a>
+      <a href="#loop-calc">4&ndash;20mA Loop Converter</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a class="elec-link" href="#what-is-electricity">Charge, Voltage &amp; Current</a>
+      <a class="elec-link" href="#ohms-law">Ohm's Law</a>
+      <a class="elec-link" href="#series-parallel">Series &amp; Parallel Circuits</a>
+      <a class="elec-link" href="#power-energy">Power &amp; Energy</a>
+      <a class="elec-link" href="#resistors">Resistors &amp; Colour Codes</a>
+      <a class="elec-link" href="#capacitors">Capacitors</a>
+      <a class="elec-link" href="#inductors">Inductors</a>
+      <a class="elec-link" href="#bench-basics">Multimeter &amp; Breadboard Basics</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="elec-link" href="#kirchhoff">Kirchhoff's Laws</a>
+      <a class="elec-link" href="#ac-fundamentals">AC Fundamentals</a>
+      <a class="elec-link" href="#impedance">Impedance &amp; Reactance</a>
+      <a class="elec-link" href="#diodes">Diodes &amp; Rectification</a>
+      <a class="elec-link" href="#transistors">Transistors as Switches</a>
+      <a class="elec-link" href="#digital-logic">Digital Logic Basics</a>
+      <a class="elec-link" href="#rc-filters">RC Filters</a>
+      <a class="elec-link" href="#op-amps">Operational Amplifiers</a>
+      <a class="elec-link" href="#power-supplies">Power Supply Design</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced &middot; Instrumentation</p>
+      <a class="inst-link" href="#what-is-instrumentation">The Measurement Chain</a>
+      <a class="inst-link" href="#transducer-characteristics">Transducer Characteristics</a>
+      <a class="inst-link" href="#temperature-sensors">Thermocouples &amp; RTDs</a>
+      <a class="inst-link" href="#strain-gauges">Strain Gauges &amp; the Wheatstone Bridge</a>
+      <a class="inst-link" href="#process-sensors">Pressure, Flow &amp; Level Sensing</a>
+      <a class="inst-link" href="#current-loop">The 4&ndash;20mA Current Loop</a>
+      <a class="inst-link" href="#adc">Analog-to-Digital Conversion</a>
+      <a class="inst-link" href="#signal-conditioning">Signal Conditioning &amp; Noise</a>
+      <a class="inst-link" href="#pid-control">Closed-Loop Control &amp; PID</a>
+      <a class="inst-link" href="#to-the-network">From Sensor to Network</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Fundamentals &amp; Field Reference</p>
+      <h1>Basic Electronics &amp; Instrumentation</h1>
+      <p class="lede">A guided path from charge and Ohm's Law through to the sensors, signal conditioning, and current loops that make up a real measurement system. Copper-tagged sections are core electronics; teal-tagged sections are instrumentation-specific &mdash; the discipline of turning a physical quantity into a trustworthy number.</p>
+    </header>
+
+    <!-- ============ TOOLS ============ -->
+
+    <section class="topic" id="ohms-calc">
+      <h2>Ohm's Law &amp; Power Calculator</h2>
+      <p>Enter any <strong>two</strong> of voltage, current, and resistance &mdash; the third, plus power, is computed from <code>V = IR</code> and <code>P = VI</code>. Leave the field you want solved for blank.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="ol-v">Voltage, V (volts)</label>
+            <input type="text" id="ol-v" placeholder="e.g. 9">
+          </div>
+          <div class="tool-field">
+            <label for="ol-i">Current, I (amps)</label>
+            <input type="text" id="ol-i" placeholder="e.g. 0.02">
+          </div>
+          <div class="tool-field">
+            <label for="ol-r">Resistance, R (ohms)</label>
+            <input type="text" id="ol-r" placeholder="leave blank to solve">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="ol-calc">Calculate</button>
+        <div class="tool-error" id="ol-error"></div>
+        <div class="result-grid" id="ol-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="resistor-decoder">
+      <h2>Resistor Colour Code Decoder</h2>
+      <p>Pick the four bands of a standard through-hole resistor to read off its value and tolerance range.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="rc-b1">Band 1 (1st digit)</label>
+            <select id="rc-b1"></select>
+          </div>
+          <div class="tool-field">
+            <label for="rc-b2">Band 2 (2nd digit)</label>
+            <select id="rc-b2"></select>
+          </div>
+          <div class="tool-field">
+            <label for="rc-b3">Band 3 (multiplier)</label>
+            <select id="rc-b3"></select>
+          </div>
+          <div class="tool-field">
+            <label for="rc-b4">Band 4 (tolerance)</label>
+            <select id="rc-b4"></select>
+          </div>
+        </div>
+        <div class="swatch-row" id="rc-swatches"></div>
+        <div class="result-grid" id="rc-output"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="voltage-divider">
+      <h2>Voltage Divider Calculator</h2>
+      <p>Two resistors in series across a supply split the voltage: <code>Vout = Vin &times; R2 / (R1 + R2)</code>, measured across R2.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="vd-vin">Vin (volts)</label>
+            <input type="text" id="vd-vin" value="12">
+          </div>
+          <div class="tool-field">
+            <label for="vd-r1">R1, ohms (top, across the drop)</label>
+            <input type="text" id="vd-r1" value="10000">
+          </div>
+          <div class="tool-field">
+            <label for="vd-r2">R2, ohms (bottom, Vout taken here)</label>
+            <input type="text" id="vd-r2" value="4700">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="vd-calc">Calculate</button>
+        <div class="result-grid" id="vd-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="rc-filter-calc">
+      <h2>RC Filter Cutoff Calculator</h2>
+      <p>A resistor and capacitor set a cutoff (&minus;3dB) frequency of <code>f<sub>c</sub> = 1 / (2&pi;RC)</code> &mdash; the same formula for a low-pass or high-pass arrangement, only which signal (DC or AC) passes through differs.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="rf-r">R, ohms</label>
+            <input type="text" id="rf-r" value="4700">
+          </div>
+          <div class="tool-field">
+            <label for="rf-c">C, farads (e.g. 10nF = 10e-9)</label>
+            <input type="text" id="rf-c" value="10e-9">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="rf-calc">Calculate</button>
+        <div class="result-grid" id="rf-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="loop-calc">
+      <h2>4&ndash;20mA Loop Converter</h2>
+      <p>Convert between a loop current and the engineering value it represents, given the transmitter's calibrated range.</p>
+      <div class="tool-panel">
+        <div class="mode-toggle" role="group" aria-label="Conversion direction">
+          <button type="button" class="loop-mode-btn active" data-mode="toval">mA &rarr; Value</button>
+          <button type="button" class="loop-mode-btn" data-mode="toma">Value &rarr; mA</button>
+        </div>
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="lc-input" id="lc-input-label">Current, mA (4&ndash;20)</label>
+            <input type="text" id="lc-input" value="12">
+          </div>
+          <div class="tool-field">
+            <label for="lc-lo">Range low (at 4mA)</label>
+            <input type="text" id="lc-lo" value="0">
+          </div>
+          <div class="tool-field">
+            <label for="lc-hi">Range high (at 20mA)</label>
+            <input type="text" id="lc-hi" value="100">
+          </div>
+          <div class="tool-field">
+            <label for="lc-unit">Unit label</label>
+            <input type="text" id="lc-unit" value="&deg;C">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="lc-calc">Convert</button>
+        <div class="tool-error" id="lc-error"></div>
+        <div class="result-grid" id="lc-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="what-is-electricity">
+      <h2>Charge, Voltage &amp; Current</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>Everything here comes down to three quantities. <strong>Charge</strong> is the stuff electrons carry. <strong>Voltage</strong> (volts, V) is the push on that charge &mdash; the electrical pressure difference between two points, exactly the way a water tower's height creates water pressure. <strong>Current</strong> (amps, A) is how much charge actually flows per second &mdash; the water moving through a pipe.</p>
+      <p>Conventional current is drawn flowing from + to &minus;, even though the electrons physically doing the moving travel the other way. Every schematic, every formula in this tutorial, uses the conventional direction &mdash; it's a 1700s convention (Benjamin Franklin guessed the sign of charge before anyone knew what an electron was) that stuck.</p>
+      <div class="callout tip">
+        <strong>Field intuition</strong>
+        Voltage exists <em>between</em> two points; it has no meaning at a single point without a reference. "5V" always means 5V relative to something &mdash; usually a ground or 0V rail. Current, by contrast, flows <em>through</em> a single point in a circuit.
+      </div>
+    </section>
+
+    <section class="topic" id="ohms-law">
+      <h2>Ohm's Law</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>The single most-used equation in electronics: <code>V = I &times; R</code>. Voltage across a resistor equals the current through it times its resistance (ohms, &Omega;). Rearranged, it answers the three questions you'll ask constantly:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Known</th><th>Solve for</th><th>Formula</th></tr></thead>
+          <tbody>
+            <tr><td>I, R</td><td>V</td><td><code>V = I &times; R</code></td></tr>
+            <tr><td>V, R</td><td>I</td><td><code>I = V / R</code></td></tr>
+            <tr><td>V, I</td><td>R</td><td><code>R = V / I</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Worked example:</strong> an LED needs 20mA (0.02A) and drops 2V across itself. Powered from a 9V supply, the resistor in series must drop the remaining 9 &minus; 2 = 7V at 0.02A: <code>R = 7 / 0.02 = 350&Omega;</code>. This exact problem is Exercise 1 below &mdash; try the calculator above to confirm it.</p>
+    </section>
+
+    <section class="topic" id="series-parallel">
+      <h2>Series &amp; Parallel Circuits</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>How resistors combine depends entirely on whether current has one path or several:</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 640 220" role="img" aria-label="Series circuit shows one current path through both resistors in a loop; parallel circuit shows current splitting across two resistor branches and recombining.">
+          <!-- Series -->
+          <text x="20" y="22" font-size="13" font-weight="600" fill="currentColor">Series &mdash; one path</text>
+          <rect x="20" y="60" width="60" height="28" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="50" y="79" font-size="11" text-anchor="middle" fill="currentColor">R1</text>
+          <rect x="140" y="60" width="60" height="28" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="170" y="79" font-size="11" text-anchor="middle" fill="currentColor">R2</text>
+          <line x1="80" y1="74" x2="140" y2="74" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="20" y1="74" x2="20" y2="130" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="200" y1="74" x2="200" y2="130" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="20" y1="130" x2="200" y2="130" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="20" cy="130" r="3" fill="currentColor"/>
+          <polygon points="105,74 112,70 112,78" fill="currentColor"/>
+          <text x="108" y="64" font-size="10" fill="currentColor" text-anchor="middle">I</text>
+          <polygon points="185,74 192,70 192,78" fill="currentColor"/>
+          <text x="188" y="64" font-size="10" fill="currentColor" text-anchor="middle">same I</text>
+          <text x="110" y="150" font-size="10" fill="currentColor" text-anchor="middle">one loop &mdash; current has no other way to go</text>
+
+          <!-- Parallel -->
+          <text x="360" y="22" font-size="13" font-weight="600" fill="currentColor">Parallel &mdash; two paths</text>
+          <line x1="360" y1="45" x2="360" y2="175" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="560" y1="45" x2="560" y2="175" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="360" y1="45" x2="400" y2="45" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="520" y1="45" x2="560" y2="45" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="360" y1="175" x2="400" y2="175" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="520" y1="175" x2="560" y2="175" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="400" y="75" width="60" height="28" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="430" y="94" font-size="11" text-anchor="middle" fill="currentColor">R1</text>
+          <line x1="400" y1="45" x2="400" y2="75" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="460" y1="89" x2="520" y2="89" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="520" y1="45" x2="520" y2="75" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="400" y="130" width="60" height="28" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="430" y="149" font-size="11" text-anchor="middle" fill="currentColor">R2</text>
+          <line x1="400" y1="175" x2="400" y2="158" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="460" y1="144" x2="520" y2="144" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="520" y1="175" x2="520" y2="158" stroke="currentColor" stroke-width="1.5"/>
+          <text x="460" y="195" font-size="10" fill="currentColor" text-anchor="middle">I splits between branches, recombines at the far node</text>
+        </svg>
+        <figcaption>Series: one current path, so the same current flows through every component &mdash; voltages add. Parallel: multiple branches share the same two nodes, so every branch sees the same voltage &mdash; currents add.</figcaption>
+      </figure>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Series</th><th>Parallel</th></tr></thead>
+          <tbody>
+            <tr><td>Total resistance</td><td><code>R1 + R2 + &hellip;</code></td><td><code>1 / (1/R1 + 1/R2 + &hellip;)</code></td></tr>
+            <tr><td>Two-resistor shortcut</td><td>&mdash;</td><td><code>(R1&times;R2) / (R1+R2)</code></td></tr>
+            <tr><td>Current</td><td>same through all</td><td>splits, more through the lower-R branch</td></tr>
+            <tr><td>Voltage</td><td>splits, more across the higher-R part</td><td>same across all branches</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Worked example:</strong> 100&Omega; and 200&Omega; in parallel: <code>(100&times;200)/(100+200) = 66.7&Omega;</code> &mdash; always less than the smallest resistor, because adding a path can only make it easier for current to flow.</p>
+    </section>
+
+    <section class="topic" id="power-energy">
+      <h2>Power &amp; Energy</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>Power (watts, W) is the rate energy is used: <code>P = V &times; I</code>. Combined with Ohm's Law, this gives two more forms worth memorising, because you rarely have all three of V, I, R measured at once:</p>
+      <pre>P = V &times; I
+P = I&sup2; &times; R      (useful when you know the current through a resistor)
+P = V&sup2; / R      (useful when you know the voltage across it)</pre>
+      <p><strong>Worked example:</strong> a 220&Omega; resistor with 5V across it dissipates <code>5&sup2;/220 = 0.114W</code> &mdash; well inside a standard &frac14;W (0.25W) resistor's rating. Exceed a resistor's power rating and it overheats, drifts in value, and eventually fails open or scorches the board &mdash; always check <code>P = V&sup2;/R</code> against the component's rated wattage, not just whether the circuit "looks fine."</p>
+      <div class="callout warn">
+        <strong>Energy vs. power</strong>
+        Power is instantaneous (watts); energy is power over time (watt-hours, or joules = watts &times; seconds). A phone charger rated 10W delivers 10 watt-hours of energy per hour it runs &mdash; this is the number on your electricity bill, not the instantaneous power alone.
+      </div>
+    </section>
+
+    <section class="topic" id="resistors">
+      <h2>Resistors &amp; Colour Codes</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>A resistor's coloured bands encode its value so it can be read without a multimeter. A standard 4-band resistor: first two bands are significant digits, the third is a power-of-ten multiplier, the fourth is tolerance.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Colour</th><th>Digit</th><th>Multiplier</th><th>Tolerance</th></tr></thead>
+          <tbody>
+            <tr><td>Black</td><td>0</td><td>&times;1</td><td>&mdash;</td></tr>
+            <tr><td>Brown</td><td>1</td><td>&times;10</td><td>&plusmn;1%</td></tr>
+            <tr><td>Red</td><td>2</td><td>&times;100</td><td>&plusmn;2%</td></tr>
+            <tr><td>Orange</td><td>3</td><td>&times;1k</td><td>&mdash;</td></tr>
+            <tr><td>Yellow</td><td>4</td><td>&times;10k</td><td>&mdash;</td></tr>
+            <tr><td>Green</td><td>5</td><td>&times;100k</td><td>&plusmn;0.5%</td></tr>
+            <tr><td>Blue</td><td>6</td><td>&times;1M</td><td>&plusmn;0.25%</td></tr>
+            <tr><td>Violet</td><td>7</td><td>&times;10M</td><td>&plusmn;0.1%</td></tr>
+            <tr><td>Grey</td><td>8</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td>White</td><td>9</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td>Gold</td><td>&mdash;</td><td>&times;0.1</td><td>&plusmn;5%</td></tr>
+            <tr><td>Silver</td><td>&mdash;</td><td>&times;0.01</td><td>&plusmn;10%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Worked example:</strong> Yellow&ndash;Violet&ndash;Red&ndash;Gold reads 4, 7, &times;100, &plusmn;5% &rarr; <code>47 &times; 100 = 4700&Omega;</code> (4.7k&Omega;) &plusmn;5%. Try it in the decoder tool above.</p>
+      <p>5-band resistors add a third digit for tighter tolerances (&plusmn;1% and below are common in instrumentation work, where every millivolt of error matters).</p>
+    </section>
+
+    <section class="topic" id="capacitors">
+      <h2>Capacitors</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>A capacitor stores charge on two plates separated by an insulator, resisting <em>changes</em> in voltage across it. Capacitance is measured in farads (F) &mdash; in practice always microfarads (&micro;F, 10&minus;&sup6;), nanofarads (nF, 10&minus;&sup9;), or picofarads (pF, 10&minus;&sup1;&sup2;), since a full farad is enormous.</p>
+      <p>Charging through a resistor follows an exponential curve characterised by the time constant <code>&tau; = RC</code> (seconds): after one &tau;, the capacitor reaches ~63% of the final voltage; after 5&tau;, it's considered fully charged (~99.3%). This single relationship underlies timing circuits, debounce filters, and the RC low-pass/high-pass filters covered later.</p>
+      <div class="callout tip">
+        <strong>Where you'll meet them</strong>
+        Decoupling/bypass (a 100nF cap next to every IC's power pin, absorbing fast current spikes), bulk smoothing after a rectifier, timing, and as the frequency-selective half of every RC filter.
+      </div>
+    </section>
+
+    <section class="topic" id="inductors">
+      <h2>Inductors</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>An inductor is a coil that resists <em>changes</em> in current, storing energy in a magnetic field rather than an electric field. It's the mirror image of a capacitor: where a cap fights a sudden voltage change, a coil fights a sudden current change &mdash; which is exactly why switching off an inductive load (a relay coil, a motor) without a flyback diode produces a damaging voltage spike as the collapsing field tries to force current to keep flowing.</p>
+      <p>Measured in henries (H), almost always millihenries (mH) or microhenries (&micro;H) in practice. You'll meet inductors far less often than resistors and capacitors in general electronics, but they're central to power-supply switching regulators, motor/relay flyback protection, and RF work.</p>
+    </section>
+
+    <section class="topic" id="bench-basics">
+      <h2>Multimeter &amp; Breadboard Basics</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p><strong>Multimeter:</strong> to measure voltage, probes go <em>across</em> (in parallel with) the two points &mdash; the meter has high internal resistance so it barely disturbs the circuit. To measure current, the meter must go <em>in series</em>, breaking the circuit open so all the current flows through it &mdash; its internal resistance is deliberately tiny. Mixing these up (measuring current in voltage mode, or voltage in current mode across a supply) is the single most common way to blow a multimeter's fuse, or worse, short a supply.</p>
+      <p><strong>Breadboard:</strong> the five holes in each short vertical column are internally connected &mdash; that's one node. The long rows top and bottom (marked + and &minus;) run the full length of the board and are meant for power rails. A component straddling the centre gap connects to two <em>separate</em> nodes, which is exactly how ICs get placed: pins on one side land in a different node from pins on the other.</p>
+      <div class="callout warn">
+        <strong>Before powering up</strong>
+        Trace your circuit once with a finger, following current from supply+ through every component back to supply&minus;, before switching anything on. Most beginner smoke comes from a reversed polarity component or a direct short between the rails, not a subtle design flaw.
+      </div>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+
+    <div class="level-banner intermediate"><span class="n">&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="kirchhoff">
+      <h2>Kirchhoff's Laws</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>Two bookkeeping rules that let you analyse any circuit, not just simple series/parallel combinations:</p>
+      <ul>
+        <li><strong>Current Law (KCL):</strong> the current flowing into a node equals the current flowing out. Charge doesn't pile up or vanish at a junction.</li>
+        <li><strong>Voltage Law (KVL):</strong> the sum of voltage drops around any closed loop equals zero. Whatever voltage the source supplies, the components in the loop must account for all of it.</li>
+      </ul>
+      <p>These two laws are why the series and parallel formulas work in the first place &mdash; they're the general case; series/parallel are the easy special cases.</p>
+    </section>
+
+    <section class="topic" id="ac-fundamentals">
+      <h2>AC Fundamentals</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>Alternating current reverses direction periodically, typically as a sine wave, described by frequency (Hz, cycles per second) and amplitude. Because a sine wave's instantaneous value is constantly changing, "the voltage" of an AC supply is usually quoted as <strong>RMS</strong> (root-mean-square) &mdash; the DC-equivalent value that would deliver the same average power into a resistive load.</p>
+      <pre>V_RMS = V_peak / &radic;2   (&asymp; V_peak &times; 0.707)</pre>
+      <p><strong>Worked example:</strong> mains power's peak voltage is about 325V; <code>325 / &radic;2 &asymp; 230V</code> &mdash; the "230V" on your wall socket is already an RMS figure, not the peak.</p>
+    </section>
+
+    <section class="topic" id="impedance">
+      <h2>Impedance &amp; Reactance</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>Resistance opposes current the same way at any frequency. Capacitors and inductors don't &mdash; their opposition (<strong>reactance</strong>, X, in ohms) depends on frequency:</p>
+      <pre>X_C = 1 / (2&pi;fC)     &mdash; capacitive reactance falls as frequency rises
+X_L = 2&pi;fL          &mdash; inductive reactance rises as frequency rises</pre>
+      <p><strong>Impedance</strong> (Z) is the combined opposition of resistance and reactance together, and unlike plain resistance it also shifts the phase between voltage and current. This frequency-dependence is the entire reason RC and RL networks can act as filters: at DC a capacitor looks like an open circuit (X<sub>C</sub>&rarr;&infin;), at very high frequency it looks like a short (X<sub>C</sub>&rarr;0).</p>
+    </section>
+
+    <section class="topic" id="diodes">
+      <h2>Diodes &amp; Rectification</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>A diode conducts current in one direction only, dropping a roughly constant forward voltage while doing so (~0.7V for silicon, ~0.3V for germanium/Schottky, ~1.8&ndash;3.3V for visible LEDs depending on colour). Below that forward voltage, and in the reverse direction entirely, it blocks current (until a much higher reverse breakdown voltage, which normal use avoids).</p>
+      <p>Arrange four diodes as a <strong>bridge rectifier</strong> and an AC input &mdash; which reverses polarity every half-cycle &mdash; comes out the other side always flowing the same direction, the first step in turning AC mains into usable DC. A smoothing capacitor across the output then fills in the gaps between pulses.</p>
+    </section>
+
+    <section class="topic" id="transistors">
+      <h2>Transistors as Switches</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>A bipolar transistor (BJT) has three legs &mdash; base, collector, emitter &mdash; and a simple rule for switch-mode use: a small current into the base allows a much larger current to flow collector-to-emitter. That current ratio is the gain, h<sub>FE</sub> (often 50&ndash;300). This is how a microcontroller pin, which might only safely source a few mA, can switch an amp-scale relay or motor on and off: the small base current, through a current-limiting resistor, turns on a much bigger collector current.</p>
+      <p>MOSFETs do the same job but are controlled by gate <em>voltage</em> rather than base <em>current</em>, and dominate modern switching applications (motor drivers, power supplies) because they waste far less energy as heat when fully on.</p>
+    </section>
+
+    <section class="topic" id="digital-logic">
+      <h2>Digital Logic Basics</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>Digital circuits treat voltage as one of two states &mdash; HIGH (logic 1) and LOW (logic 0) &mdash; and combine them with logic gates:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Gate</th><th>Output is HIGH when&hellip;</th></tr></thead>
+          <tbody>
+            <tr><td>AND</td><td>all inputs are HIGH</td></tr>
+            <tr><td>OR</td><td>any input is HIGH</td></tr>
+            <tr><td>NOT</td><td>the single input is LOW (it inverts)</td></tr>
+            <tr><td>NAND</td><td>NOT(all inputs HIGH) &mdash; the inverse of AND</td></tr>
+            <tr><td>XOR</td><td>exactly one input is HIGH (not both, not neither)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Every digital system &mdash; a microcontroller's internal logic, a PLC's ladder logic (see the companion Modbus tutorial), an ADC's successive-approximation register &mdash; is built from these few primitives combined at scale.</p>
+    </section>
+
+    <section class="topic" id="rc-filters">
+      <h2>RC Filters</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>A resistor and capacitor in series, with the output taken across one of them, forms the simplest filter:</p>
+      <ul>
+        <li><strong>Low-pass</strong> (output across C): passes low frequencies, attenuates high ones. Capacitive reactance is high at low frequency (blocks little, drop stays small), low at high frequency (shorts the output to ground).</li>
+        <li><strong>High-pass</strong> (output across R): the opposite &mdash; passes high frequencies, attenuates low ones.</li>
+      </ul>
+      <p>Both share the same cutoff frequency formula: <code>f<sub>c</sub> = 1 / (2&pi;RC)</code>, the point where output power has dropped to half (&minus;3dB). <strong>Worked example:</strong> R = 4.7k&Omega;, C = 10nF &rarr; <code>f<sub>c</sub> = 1/(2&pi; &times; 4700 &times; 10&times;10&minus;&sup9;) &asymp; 3386Hz</code> &mdash; verify it in the calculator above.</p>
+    </section>
+
+    <section class="topic" id="op-amps">
+      <h2>Operational Amplifiers</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>An op-amp is a high-gain differential amplifier, almost always used with external resistors that set a precise, predictable gain via negative feedback. Two configurations cover most practical use:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Configuration</th><th>Gain</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Non-inverting</td><td><code>Av = 1 + Rf/Rin</code></td><td>output in phase with input; gain always &ge;1</td></tr>
+            <tr><td>Inverting</td><td><code>Av = &minus;Rf/Rin</code></td><td>output 180&deg; out of phase; gain can be &lt;1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Worked examples:</strong> non-inverting with Rf = 100k&Omega;, Rin = 10k&Omega; gives <code>1 + 10 = 11&times;</code> gain. Inverting with Rf = 47k&Omega;, Rin = 4.7k&Omega; gives <code>&minus;10&times;</code> gain. This is precisely the building block instrumentation uses to amplify a sensor's millivolt-level output up to a usable range before it ever reaches an ADC &mdash; see Signal Conditioning below.</p>
+    </section>
+
+    <section class="topic" id="power-supplies">
+      <h2>Power Supply Design</h2>
+      <div class="domain-box elec"><span class="tag">Electronics</span></div>
+      <p>A typical linear DC supply chain: <strong>transformer</strong> (steps mains voltage down) &rarr; <strong>bridge rectifier</strong> (four diodes, converts AC to pulsating DC) &rarr; <strong>smoothing capacitor</strong> (fills the gaps between pulses) &rarr; <strong>linear regulator</strong> (holds the output at a fixed voltage regardless of load, by dropping the excess as heat).</p>
+      <p>Linear regulators are simple and quiet (low electrical noise) but wasteful &mdash; the voltage they drop times the current is dissipated as heat. Switching regulators (buck/boost converters) achieve the same job far more efficiently by rapidly switching an inductor on and off, at the cost of some electrical noise, which matters when the supply feeds sensitive analog instrumentation.</p>
+    </section>
+
+    <!-- ============ ADVANCED / INSTRUMENTATION ============ -->
+
+    <div class="level-banner advanced"><span class="n">&#9679;</span> Advanced &middot; Instrumentation</div>
+
+    <section class="topic" id="what-is-instrumentation">
+      <h2>The Measurement Chain</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Instrumentation is the discipline of turning a physical quantity &mdash; temperature, pressure, strain, flow &mdash; into a trustworthy number, reliably, repeatedly, and traceably. Every measurement system follows the same chain:</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 680 140" role="img" aria-label="Measurement chain: physical quantity enters a sensor/transducer, which outputs a raw electrical signal, which passes through signal conditioning to a clean usable signal, into an ADC producing a digital value, read by a processor or controller.">
+          <g font-family="IBM Plex Mono, monospace" font-size="11">
+            <rect x="10" y="40" width="100" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="60" y="60" text-anchor="middle" fill="currentColor">Physical</text>
+            <text x="60" y="74" text-anchor="middle" fill="currentColor">quantity</text>
+
+            <line x1="110" y1="65" x2="148" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="148,65 140,61 140,69" fill="currentColor"/>
+
+            <rect x="150" y="40" width="100" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="200" y="60" text-anchor="middle" fill="currentColor">Sensor /</text>
+            <text x="200" y="74" text-anchor="middle" fill="currentColor">transducer</text>
+
+            <line x1="250" y1="65" x2="288" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="288,65 280,61 280,69" fill="currentColor"/>
+            <text x="269" y="55" text-anchor="middle" fill="currentColor" font-size="9">raw mV</text>
+
+            <rect x="290" y="40" width="110" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="345" y="60" text-anchor="middle" fill="currentColor">Signal</text>
+            <text x="345" y="74" text-anchor="middle" fill="currentColor">conditioning</text>
+
+            <line x1="400" y1="65" x2="438" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="438,65 430,61 430,69" fill="currentColor"/>
+            <text x="419" y="55" text-anchor="middle" fill="currentColor" font-size="9">clean V</text>
+
+            <rect x="440" y="40" width="80" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="480" y="65" text-anchor="middle" fill="currentColor">ADC</text>
+
+            <line x1="520" y1="65" x2="558" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="558,65 550,61 550,69" fill="currentColor"/>
+            <text x="539" y="55" text-anchor="middle" fill="currentColor" font-size="9">digits</text>
+
+            <rect x="560" y="40" width="110" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="615" y="60" text-anchor="middle" fill="currentColor">Processor /</text>
+            <text x="615" y="74" text-anchor="middle" fill="currentColor">controller</text>
+          </g>
+        </svg>
+        <figcaption>Every instrument is this same chain: a sensor converts the physical quantity to a small electrical signal, conditioning cleans and scales it, an ADC digitises it, and software acts on the number. A fault anywhere in this chain reads as a bad measurement &mdash; diagnosing <em>which</em> stage failed is most of an instrumentation technician's job.</figcaption>
+      </figure>
+      <p>This tutorial's electronics sections build the components used at every stage of this chain &mdash; the op-amp that conditions, the resistor network that scales, the ADC math that digitises.</p>
+    </section>
+
+    <section class="topic" id="transducer-characteristics">
+      <h2>Transducer Characteristics</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>A sensor's datasheet is only useful once these terms stop being jargon:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>Accuracy</td><td>how close a reading is to the true value</td></tr>
+            <tr><td>Precision</td><td>how repeatable readings are, regardless of whether they're accurate (a scale that's always wrong by the exact same 2kg is precise but not accurate)</td></tr>
+            <tr><td>Sensitivity</td><td>output change per unit input change (e.g. mV/&deg;C) &mdash; the slope of the transfer function</td></tr>
+            <tr><td>Linearity</td><td>how closely the real transfer function matches a straight line across its range</td></tr>
+            <tr><td>Hysteresis</td><td>output differs depending on whether the input is rising or falling through the same value</td></tr>
+            <tr><td>Resolution</td><td>the smallest change the sensor (or its ADC) can distinguish &mdash; separate from accuracy</td></tr>
+            <tr><td>Repeatability</td><td>agreement between successive measurements of the same quantity, same conditions</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <strong>Accuracy &ne; precision &ne; resolution</strong>
+        A 24-bit ADC has enormous resolution, but if the sensor feeding it is only accurate to &plusmn;2%, those extra bits are measuring noise, not reality. Always match conditioning and digitisation precision to what the sensor can actually deliver.
+      </div>
+    </section>
+
+    <section class="topic" id="temperature-sensors">
+      <h2>Thermocouples &amp; RTDs</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>The two workhorse temperature sensors work on opposite principles:</p>
+      <ul>
+        <li><strong>Thermocouple:</strong> two dissimilar metal wires joined at the measurement point generate a small voltage (microvolts per &deg;C) proportional to the temperature difference between that junction and a reference junction &mdash; the Seebeck effect. Cheap, rugged, wide range (Type K: &minus;200&deg;C to +1260&deg;C), but needs <strong>cold-junction compensation</strong>: since the voltage depends on the <em>difference</em> between two junctions, the instrument must separately measure the temperature at its own terminals (the "cold junction") and add that back in, or every reading is off by the ambient temperature at the connector.</li>
+        <li><strong>RTD</strong> (Resistance Temperature Detector): a precision resistor (commonly platinum, "Pt100" = 100&Omega; at 0&deg;C) whose resistance increases predictably and near-linearly with temperature. More accurate and stable than a thermocouple, narrower range, needs a small excitation current run through it (which itself generates a little self-heating error) and its resistance change read out &mdash; often via a bridge circuit.</li>
+      </ul>
+    </section>
+
+    <section class="topic" id="strain-gauges">
+      <h2>Strain Gauges &amp; the Wheatstone Bridge</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>A strain gauge is a thin conductive foil whose resistance changes very slightly as it's stretched or compressed with whatever it's bonded to &mdash; the basis of most load cells and pressure sensors. The problem: that resistance change is tiny (fractions of a percent), far too small to read directly against a resistor's normal manufacturing tolerance. The <strong>Wheatstone bridge</strong> solves this by measuring the <em>imbalance</em> rather than the absolute value:</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 400 300" role="img" aria-label="Wheatstone bridge: four resistors arranged in a diamond, excitation voltage applied top to bottom, output voltage measured across the two side nodes; one resistor is the strain gauge whose small change unbalances the bridge and produces a measurable output.">
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor">
+            <text x="200" y="20" text-anchor="middle" font-size="12" font-weight="600">+Vex</text>
+            <line x1="200" y1="28" x2="200" y2="55" stroke="currentColor" stroke-width="1.5"/>
+
+            <line x1="200" y1="55" x2="110" y2="140" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="200" y1="55" x2="290" y2="140" stroke="currentColor" stroke-width="1.5"/>
+            <text x="135" y="90" font-size="10">R1</text>
+            <text x="255" y="90" font-size="10">R2</text>
+
+            <line x1="110" y1="140" x2="200" y2="225" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="290" y1="140" x2="200" y2="225" stroke="currentColor" stroke-width="1.5"/>
+            <text x="135" y="195" font-size="10">R3</text>
+            <text x="220" y="195" font-size="10" fill="var(--inst)" font-weight="600">Rg (gauge)</text>
+
+            <circle cx="110" cy="140" r="3"/>
+            <circle cx="290" cy="140" r="3"/>
+            <circle cx="200" cy="55" r="3"/>
+            <circle cx="200" cy="225" r="3"/>
+
+            <line x1="110" y1="140" x2="60" y2="140" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <line x1="290" y1="140" x2="340" y2="140" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <text x="35" y="137" text-anchor="middle" font-size="10">V&minus;</text>
+            <text x="365" y="137" text-anchor="middle" font-size="10">V+</text>
+            <text x="200" y="170" text-anchor="middle" font-size="9" fill="currentColor">Vout = V+ &minus; V&minus;</text>
+
+            <line x1="200" y1="225" x2="200" y2="255" stroke="currentColor" stroke-width="1.5"/>
+            <text x="200" y="275" text-anchor="middle" font-size="12" font-weight="600">&minus;Vex (GND)</text>
+          </g>
+        </svg>
+        <figcaption>With all four arms equal, V+ and V&minus; sit at the same potential and Vout = 0 &mdash; "balanced." Replacing one arm with a strain gauge: as it's strained, its resistance shifts slightly, tips the bridge out of balance, and Vout becomes a small but measurable voltage proportional to the strain.</figcaption>
+      </figure>
+      <p>For a bridge with one active arm, the approximate output is <code>Vout &asymp; (Vex/4) &times; (&Delta;R/R)</code>. <strong>Worked example:</strong> Vex = 5V, &Delta;R/R = 0.002 (0.2% change) &rarr; <code>Vout = 2.5mV</code> &mdash; a signal small enough that it almost always needs an instrumentation amplifier (a precision differential op-amp stage) before anything downstream can use it.</p>
+    </section>
+
+    <section class="topic" id="process-sensors">
+      <h2>Pressure, Flow &amp; Level Sensing</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Quantity</th><th>Common sensing principle</th></tr></thead>
+          <tbody>
+            <tr><td>Pressure</td><td>a diaphragm deflects under pressure; strain gauges (often in a bridge, as above) or a piezoresistive element convert that deflection to an electrical signal</td></tr>
+            <tr><td>Flow</td><td>differential pressure across a known restriction (orifice plate), a spinning turbine's rotation rate, or ultrasonic/Doppler time-of-flight through the fluid</td></tr>
+            <tr><td>Level</td><td>hydrostatic pressure at the tank bottom, a float switch, ultrasonic/radar time-of-flight from the top, or capacitance change between a probe and the tank wall</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Notice the pattern: almost none of these sense the quantity you actually want directly. Flow is usually inferred from a pressure difference; level is usually inferred from pressure or time-of-flight. Knowing what's <em>really</em> being measured is often the key to diagnosing why a reading looks wrong (e.g. a "level" sensor reading hydrostatic pressure will mis-read if the fluid's density changes).</p>
+    </section>
+
+    <section class="topic" id="current-loop">
+      <h2>The 4&ndash;20mA Current Loop</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Industrial instruments overwhelmingly transmit their reading as a <strong>current</strong>, not a voltage, over a single twisted pair &mdash; and the range starts at 4mA, not 0mA. Both choices solve real field problems:</p>
+      <ul>
+        <li><strong>Current, not voltage:</strong> current is the same at every point in a series loop regardless of wire resistance or length, so voltage drop along a long cable run doesn't corrupt the reading the way it would with a voltage signal.</li>
+        <li><strong>4mA as "zero," not 0mA:</strong> a dead loop (wire cut, transmitter powered off) reads 0mA, which is clearly distinguishable from a live "zero" reading at 4mA &mdash; the gap between 0 and 4mA is a built-in fault indicator, often called "live zero."</li>
+      </ul>
+      <figure class="diagram">
+        <svg viewBox="0 0 560 170" role="img" aria-label="4 to 20 milliamp current loop: a loop power supply, a two wire transmitter that regulates the loop current between 4 and 20 milliamps in proportion to the measured quantity, and a receiver resistor at the control room end where the voltage across it is read as the signal; same current flows through every part of the series loop.">
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor">
+            <rect x="20" y="60" width="90" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="65" y="80" text-anchor="middle">Loop PSU</text>
+            <text x="65" y="94" text-anchor="middle" font-size="9">(24V)</text>
+
+            <rect x="230" y="60" width="110" height="50" rx="6" fill="none" stroke="var(--inst)" stroke-width="1.8"/>
+            <text x="285" y="80" text-anchor="middle" fill="var(--inst)">Transmitter</text>
+            <text x="285" y="94" text-anchor="middle" font-size="9" fill="var(--inst)">regulates I = f(PV)</text>
+
+            <rect x="450" y="60" width="90" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="495" y="80" text-anchor="middle">Receiver</text>
+            <text x="495" y="94" text-anchor="middle" font-size="9">R = 250&Omega;</text>
+
+            <line x1="110" y1="70" x2="230" y2="70" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="340" y1="70" x2="450" y2="70" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="540" y1="95" x2="580" y2="95" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="580" y1="95" x2="580" y2="140" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="580" y1="140" x2="20" y2="140" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="20" y1="140" x2="20" y2="95" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="20" y1="95" x2="20" y2="95" stroke="currentColor" stroke-width="1.5"/>
+
+            <polygon points="180,70 172,66 172,74" fill="currentColor"/>
+            <polygon points="400,70 392,66 392,74" fill="currentColor"/>
+            <polygon points="100,140 108,136 108,144" fill="currentColor" transform="rotate(180 104 140)"/>
+            <text x="285" y="125" text-anchor="middle" font-size="9">same current, 4&ndash;20mA, flows around the entire series loop</text>
+          </g>
+        </svg>
+        <figcaption>The transmitter doesn't send a signal <em>in addition to</em> its own power &mdash; it draws its power from the same two wires and regulates how much current it allows through the loop (between 4 and 20mA) to encode the reading. The control room reads the signal simply as the voltage dropped across a known resistor, via <code>V = IR</code>.</figcaption>
+      </figure>
+      <p><strong>Worked example:</strong> a temperature transmitter calibrated 0&ndash;100&deg;C reads 12mA. That's the midpoint of the 4&ndash;20mA span, so <code>value = 0 + (12&minus;4)/16 &times; 100 = 50.0&deg;C</code>. For a transmitter calibrated to a range with an offset, e.g. &minus;20 to 80&deg;C at 14mA: <code>&minus;20 + (14&minus;4)/16 &times; 100 = 42.5&deg;C</code>. Try both in the converter tool above.</p>
+    </section>
+
+    <section class="topic" id="adc">
+      <h2>Analog-to-Digital Conversion</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>An ADC converts a continuous voltage into a discrete number, with two limits that together set how faithfully it represents the original signal:</p>
+      <ul>
+        <li><strong>Resolution</strong> (bits, n): the number of discrete steps is 2<sup>n</sup>. The size of each step &mdash; the smallest voltage change the ADC can distinguish &mdash; is <code>Vref / 2<sup>n</sup></code>.</li>
+        <li><strong>Sampling rate:</strong> how often the ADC takes a reading. The Nyquist criterion requires sampling at more than twice the highest frequency present in the signal, or higher-frequency content folds back and masquerades as a lower frequency ("aliasing") &mdash; which is why anti-aliasing filters (another RC low-pass, often) sit in front of an ADC's input.</li>
+      </ul>
+      <p><strong>Worked examples:</strong> a 10-bit ADC with a 5V reference has a step size of <code>5/1024 &asymp; 4.88mV</code> &mdash; any voltage change smaller than that is invisible to it. A 12-bit ADC at 3.3V does better: <code>3.3/4096 &asymp; 0.806mV</code> per step.</p>
+      <div class="callout warn">
+        <strong>Resolution isn't accuracy</strong>
+        A fine step size only matters if the signal feeding the ADC is clean and the reference voltage is stable &mdash; a noisy or poorly conditioned input will have its noise faithfully digitised right along with the real signal, at whatever resolution you've paid for.
+      </div>
+    </section>
+
+    <section class="topic" id="signal-conditioning">
+      <h2>Signal Conditioning &amp; Noise</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Between a sensor's raw output and a usable digital reading sits a chain of conditioning, typically some mix of:</p>
+      <ul>
+        <li><strong>Amplification</strong> &mdash; a millivolt-level bridge or thermocouple signal needs gain (an instrumentation amplifier, built around op-amps) before an ADC can resolve it meaningfully.</li>
+        <li><strong>Filtering</strong> &mdash; an RC low-pass ahead of the ADC removes high-frequency noise and prevents aliasing.</li>
+        <li><strong>Isolation</strong> &mdash; opto-isolators or isolation amplifiers break a direct electrical connection between field wiring and control electronics, protecting against ground potential differences and fault voltages (note the opto-isolated inputs on the relay board covered in the earlier field guide &mdash; this is exactly why they're there).</li>
+      </ul>
+      <p><strong>Grounding and noise:</strong> a <em>ground loop</em> forms when two points that should be at the same potential (both called "ground") actually differ slightly, driving a stray current through whatever signal cable connects them &mdash; a classic source of hum and drift in long sensor runs. Two standard defenses: run sensor signals <strong>differentially</strong> (two wires carrying the signal and its exact inverse, so noise picked up equally by both wires cancels at the receiver) rather than single-ended against a shared ground, and tie cable shields to ground at <strong>one end only</strong>, so the shield can't itself become part of a ground loop.</p>
+    </section>
+
+    <section class="topic" id="pid-control">
+      <h2>Closed-Loop Control &amp; PID</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>An <strong>open-loop</strong> system acts without checking the result (a timer-based sprinkler that runs for 10 minutes regardless of whether the soil is already wet). A <strong>closed-loop</strong> system measures its own output and feeds that measurement back to correct itself &mdash; a thermostat is the everyday example. The measurement chain covered above is exactly the "sense" half of that loop.</p>
+      <p>The standard closed-loop controller is <strong>PID</strong> &mdash; Proportional, Integral, Derivative &mdash; which computes a correction from the error (setpoint minus measured value) three ways at once:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Term</th><th>Reacts to</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td>P</td><td>the current error</td><td>bigger error &rarr; bigger correction, but settles with some steady-state error left over</td></tr>
+            <tr><td>I</td><td>accumulated past error</td><td>eliminates that leftover steady-state error over time, but can overshoot if too aggressive</td></tr>
+            <tr><td>D</td><td>how fast the error is changing</td><td>dampens overshoot by reacting to the trend, not just the current value</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Tuning the three gains (Kp, Ki, Kd) that weight each term is its own deep field &mdash; the summary worth keeping is that P alone is fast but imprecise, I alone is precise but slow and prone to overshoot, and D alone does nothing without the others to dampen. Nearly every industrial temperature, flow, and pressure control loop is some flavour of PID underneath.</p>
+    </section>
+
+    <section class="topic" id="to-the-network">
+      <h2>From Sensor to Network</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Once a reading is digitised, it still has to get to wherever it's used &mdash; a PLC, a SCADA screen, a data logger. A 4&ndash;20mA loop carries exactly one value per pair of wires; getting several registers' worth of data (multiple sensor channels, status flags, setpoints) over one cable is what a fieldbus protocol is for. This Handbook's <a href="../subjects/modbus-rtu-tcp.html">Modbus RTU/TCP tutorial</a> picks up exactly here &mdash; the same opto-isolated relay board and current-loop transmitters discussed in this tutorial are, in practice, very often read out over an RS-485 Modbus network rather than wired point-to-point.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+
+    <div class="level-banner basic" id="practice-exercises" style="margin-top:56px;"><span class="n">&#9679;</span> Practice Exercises</div>
+
+    <section class="topic">
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Size a current-limiting resistor for an LED</summary>
+        <div class="ex-body">
+          <p>An LED needs 20mA and drops 2V forward voltage. It's powered from a 9V supply through a single series resistor. What resistor value is needed?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            The resistor must drop the remaining voltage: 9V &minus; 2V = 7V, at 0.02A. <code>R = V/I = 7/0.02 = 350&Omega;</code>. In practice you'd pick the nearest standard value above this (e.g. 360&Omega; or 390&Omega;) so the LED never exceeds its rated current.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Combine two resistors in parallel</summary>
+        <div class="ex-body">
+          <p>What's the combined resistance of a 100&Omega; and a 200&Omega; resistor wired in parallel?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>(100 &times; 200) / (100 + 200) = 20000/300 = 66.7&Omega;</code>. As always with parallel resistors, the result is smaller than either individual resistor.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Find an RC low-pass cutoff frequency</summary>
+        <div class="ex-body">
+          <p>An anti-aliasing filter uses R = 4.7k&Omega; and C = 10nF. What's its &minus;3dB cutoff frequency?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>f<sub>c</sub> = 1/(2&pi;RC) = 1/(2&pi; &times; 4700 &times; 10&times;10&minus;&sup9;) &asymp; 3386Hz</code>. Any signal content above roughly 3.4kHz is attenuated before it reaches the ADC.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Choose a feedback resistor for a target op-amp gain</summary>
+        <div class="ex-body">
+          <p>A non-inverting amplifier needs a gain of 21&times;, and Rin is fixed at 1k&Omega;. What value of Rf is needed?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            From <code>Av = 1 + Rf/Rin</code>: <code>21 = 1 + Rf/1000 &rarr; Rf = 20 &times; 1000 = 20,000&Omega;</code> (20k&Omega;).
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Decode a 4&ndash;20mA reading with an offset range</summary>
+        <div class="ex-body">
+          <p>A loop-powered transmitter is calibrated &minus;20&deg;C to +80&deg;C over its 4&ndash;20mA span. The loop currently reads 14mA. What temperature does that represent?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            Fraction of span: <code>(14&minus;4)/16 = 0.625</code>. Applied to the range: <code>&minus;20 + 0.625 &times; (80&minus;(&minus;20)) = &minus;20 + 0.625&times;100 = 42.5&deg;C</code>.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Back out strain from a Wheatstone bridge reading</summary>
+        <div class="ex-body">
+          <p>A single-active-arm Wheatstone bridge is excited with Vex = 10V, and the measured output is 5mV. What's the fractional resistance change (&Delta;R/R) in the active gauge?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            Rearranging <code>Vout &asymp; (Vex/4) &times; (&Delta;R/R)</code>: <code>&Delta;R/R = Vout &times; 4 / Vex = 0.005 &times; 4 / 10 = 0.002</code>, i.e. a 0.2% resistance change &mdash; a realistic order of magnitude for a loaded strain gauge.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  // ---------- Ohm's Law calculator ----------
+  function num(id){ var v = document.getElementById(id).value.trim(); return v === '' ? null : parseFloat(v); }
+  document.getElementById('ol-calc').addEventListener('click', function(){
+    var V = num('ol-v'), I = num('ol-i'), R = num('ol-r');
+    var err = document.getElementById('ol-error'); err.textContent = '';
+    var known = [V,I,R].filter(function(x){ return x !== null && !isNaN(x); }).length;
+    if (known < 2){ err.textContent = 'Enter any two of V, I, R.'; document.getElementById('ol-output').style.display='none'; return; }
+    if (V === null) V = I * R;
+    else if (I === null) I = V / R;
+    else if (R === null) R = V / I;
+    var P = V * I;
+    var out = document.getElementById('ol-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Voltage</div><div class="r-value">' + V.toPrecision(5).replace(/\.?0+$/,'') + ' V</div></div>' +
+      '<div class="result-card"><div class="r-label">Current</div><div class="r-value">' + I.toPrecision(5).replace(/\.?0+$/,'') + ' A</div></div>' +
+      '<div class="result-card"><div class="r-label">Resistance</div><div class="r-value">' + R.toPrecision(5).replace(/\.?0+$/,'') + ' &#937;</div></div>' +
+      '<div class="result-card"><div class="r-label">Power</div><div class="r-value">' + P.toPrecision(5).replace(/\.?0+$/,'') + ' W</div></div>';
+  });
+
+  // ---------- Resistor colour decoder ----------
+  var DIGIT_COLORS = [
+    ['Black','#1a1a1a',0],['Brown','#7a4a2a',1],['Red','#c0392b',2],['Orange','#d2691e',3],
+    ['Yellow','#e6c200',4],['Green','#1e8449',5],['Blue','#2563a8',6],['Violet','#7d3c98',7],
+    ['Grey','#888',8],['White','#f0f0f0',9]
+  ];
+  var MULT_COLORS = [
+    ['Black',1],['Brown',10],['Red',100],['Orange',1000],['Yellow',10000],
+    ['Green',100000],['Blue',1000000],['Gold',0.1],['Silver',0.01]
+  ];
+  var TOL_COLORS = [['Brown',1],['Red',2],['Gold',5],['Silver',10],['Green',0.5],['Blue',0.25],['Violet',0.1]];
+  var SWATCH_HEX = { Black:'#1a1a1a', Brown:'#7a4a2a', Red:'#c0392b', Orange:'#d2691e', Yellow:'#e6c200',
+    Green:'#1e8449', Blue:'#2563a8', Violet:'#7d3c98', Grey:'#888', White:'#f0f0f0', Gold:'#c9a227', Silver:'#b0b0b0' };
+
+  function fillSelect(id, items, labelFn){
+    var sel = document.getElementById(id);
+    items.forEach(function(it){
+      var opt = document.createElement('option');
+      opt.value = it[0]; opt.textContent = labelFn(it);
+      sel.appendChild(opt);
+    });
+  }
+  fillSelect('rc-b1', DIGIT_COLORS, function(it){ return it[0] + ' (' + it[2] + ')'; });
+  fillSelect('rc-b2', DIGIT_COLORS, function(it){ return it[0] + ' (' + it[2] + ')'; });
+  fillSelect('rc-b3', MULT_COLORS, function(it){ return it[0] + ' (×' + it[1] + ')'; });
+  fillSelect('rc-b4', TOL_COLORS, function(it){ return it[0] + ' (±' + it[1] + '%)'; });
+  document.getElementById('rc-b1').value = 'Yellow';
+  document.getElementById('rc-b2').value = 'Violet';
+  document.getElementById('rc-b3').value = 'Red';
+  document.getElementById('rc-b4').value = 'Gold';
+
+  function fmtOhms(v){
+    if (v >= 1e6) return (v/1e6).toPrecision(4).replace(/\.?0+$/,'') + ' MΩ';
+    if (v >= 1e3) return (v/1e3).toPrecision(4).replace(/\.?0+$/,'') + ' kΩ';
+    return v.toPrecision(4).replace(/\.?0+$/,'') + ' Ω';
+  }
+  function updateResistor(){
+    var d1 = DIGIT_COLORS.find(function(c){ return c[0]===document.getElementById('rc-b1').value; })[2];
+    var d2 = DIGIT_COLORS.find(function(c){ return c[0]===document.getElementById('rc-b2').value; })[2];
+    var multName = document.getElementById('rc-b3').value;
+    var mult = MULT_COLORS.find(function(c){ return c[0]===multName; })[1];
+    var tolName = document.getElementById('rc-b4').value;
+    var tol = TOL_COLORS.find(function(c){ return c[0]===tolName; })[1];
+    var value = (d1*10+d2) * mult;
+    var lo = value * (1 - tol/100), hi = value * (1 + tol/100);
+
+    var sw = document.getElementById('rc-swatches');
+    sw.innerHTML = '';
+    [document.getElementById('rc-b1').value, document.getElementById('rc-b2').value, multName, tolName].forEach(function(c){
+      var d = document.createElement('div');
+      d.className = 'swatch';
+      d.style.background = SWATCH_HEX[c] || '#999';
+      d.title = c;
+      sw.appendChild(d);
+    });
+
+    var out = document.getElementById('rc-output');
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Value</div><div class="r-value">' + fmtOhms(value) + '</div></div>' +
+      '<div class="result-card"><div class="r-label">Tolerance</div><div class="r-value">&plusmn;' + tol + '%</div></div>' +
+      '<div class="result-card"><div class="r-label">Range</div><div class="r-value">' + fmtOhms(lo) + '&ndash;' + fmtOhms(hi) + '</div></div>';
+  }
+  ['rc-b1','rc-b2','rc-b3','rc-b4'].forEach(function(id){
+    document.getElementById(id).addEventListener('change', updateResistor);
+  });
+  updateResistor();
+
+  // ---------- Voltage divider ----------
+  document.getElementById('vd-calc').addEventListener('click', function(){
+    var Vin = num('vd-vin'), R1 = num('vd-r1'), R2 = num('vd-r2');
+    if (Vin===null || R1===null || R2===null || R1+R2===0){ return; }
+    var Vout = Vin * R2 / (R1+R2);
+    var out = document.getElementById('vd-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Vout</div><div class="r-value">' + Vout.toPrecision(5).replace(/\.?0+$/,'') + ' V</div></div>' +
+      '<div class="result-card"><div class="r-label">Fraction of Vin</div><div class="r-value">' + (Vout/Vin*100).toFixed(2) + '%</div></div>' +
+      '<div class="result-card"><div class="r-label">Current through divider</div><div class="r-value">' + (Vin/(R1+R2)*1000).toPrecision(4).replace(/\.?0+$/,'') + ' mA</div></div>';
+  });
+
+  // ---------- RC filter calculator ----------
+  document.getElementById('rf-calc').addEventListener('click', function(){
+    var R = num('rf-r'), C = num('rf-c');
+    if (R===null || C===null || R<=0 || C<=0){ return; }
+    var fc = 1/(2*Math.PI*R*C);
+    var tau = R*C;
+    var out = document.getElementById('rf-output');
+    out.style.display = 'grid';
+    var fcDisp = fc >= 1000 ? (fc/1000).toPrecision(5).replace(/\.?0+$/,'') + ' kHz' : fc.toPrecision(5).replace(/\.?0+$/,'') + ' Hz';
+    var tauDisp = tau >= 1 ? tau.toPrecision(4) + ' s' : (tau*1e6).toPrecision(4) + ' µs';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Cutoff f<sub>c</sub></div><div class="r-value">' + fcDisp + '</div></div>' +
+      '<div class="result-card"><div class="r-label">Time constant &tau;=RC</div><div class="r-value">' + tauDisp + '</div></div>';
+  });
+
+  // ---------- 4-20mA loop converter ----------
+  var loopMode = 'toval';
+  document.querySelectorAll('.loop-mode-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.loop-mode-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      loopMode = btn.dataset.mode;
+      var lbl = document.getElementById('lc-input-label');
+      var inp = document.getElementById('lc-input');
+      if (loopMode === 'toval'){ lbl.textContent = 'Current, mA (4–20)'; inp.value = '12'; }
+      else { lbl.textContent = 'Engineering value'; inp.value = '50'; }
+    });
+  });
+  document.getElementById('lc-calc').addEventListener('click', function(){
+    var input = num('lc-input'), lo = num('lc-lo'), hi = num('lc-hi');
+    var unit = document.getElementById('lc-unit').value || '';
+    var err = document.getElementById('lc-error'); err.textContent = '';
+    if (input===null || lo===null || hi===null){ err.textContent = 'Fill in all fields.'; return; }
+    var out = document.getElementById('lc-output');
+    out.style.display = 'grid';
+    if (loopMode === 'toval'){
+      if (input < 4 || input > 20){ err.textContent = 'Current outside 4–20mA — loop fault or out-of-range reading.'; }
+      var value = lo + (input-4)/16*(hi-lo);
+      out.innerHTML =
+        '<div class="result-card"><div class="r-label">Value</div><div class="r-value">' + value.toPrecision(5).replace(/\.?0+$/,'') + ' ' + unit + '</div></div>' +
+        '<div class="result-card"><div class="r-label">Span fraction</div><div class="r-value">' + ((input-4)/16*100).toFixed(1) + '%</div></div>';
+    } else {
+      if (input < lo || input > hi){ err.textContent = 'Value outside the calibrated range.'; }
+      var mA = 4 + (input-lo)/(hi-lo)*16;
+      out.innerHTML =
+        '<div class="result-card"><div class="r-label">Loop current</div><div class="r-value">' + mA.toPrecision(5).replace(/\.?0+$/,'') + ' mA</div></div>' +
+        '<div class="result-card"><div class="r-label">Span fraction</div><div class="r-value">' + ((input-lo)/(hi-lo)*100).toFixed(1) + '%</div></div>';
+    }
+  });
+
+  // ---------- In-page search ----------
+  var searchIndex = [];
+  document.querySelectorAll('section.topic[id]').forEach(function(sec){
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    searchIndex.push({ kind: 'Section', title: h2.textContent, id: sec.id, text: sec.textContent.toLowerCase() });
+  });
+  document.querySelectorAll('details.ex').forEach(function(ex, i){
+    var summary = ex.querySelector('summary');
+    var title = summary.textContent.replace(/^(Basic|Intermediate|Advanced)\s*/i, '').trim();
+    if (!ex.id) ex.id = 'ex-auto-' + i;
+    searchIndex.push({ kind: 'Exercise', title: title, id: ex.id, text: ex.textContent.toLowerCase(), isEx: true });
+  });
+
+  var input = document.getElementById('page-search-input');
+  var results = document.getElementById('page-search-results');
+
+  function renderResults(list){
+    if (list.length === 0){ results.innerHTML = '<div class="r-empty">No matches.</div>'; results.classList.add('open'); return; }
+    results.innerHTML = list.slice(0,12).map(function(r){
+      return '<a href="#' + r.id + '" data-id="' + r.id + '" data-ex="' + (r.isEx?'1':'0') + '"><span class="r-kind">' + r.kind + '</span>' + r.title + '</a>';
+    }).join('');
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', function(){
+    var q = input.value.trim().toLowerCase();
+    if (!q){ results.classList.remove('open'); return; }
+    var matches = searchIndex.filter(function(item){ return item.text.indexOf(q) !== -1; });
+    renderResults(matches);
+  });
+
+  results.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if (!a) return;
+    var isEx = a.dataset.ex === '1';
+    if (isEx){
+      e.preventDefault();
+      var id = a.dataset.id;
+      var el = document.getElementById(id);
+      if (el){
+        el.open = true;
+        setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); }, 30);
+      }
+      results.classList.remove('open');
+      input.value = '';
+    } else {
+      results.classList.remove('open');
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!results.contains(e.target) && e.target !== input){ results.classList.remove('open'); }
+  });
+})();
+</script>
