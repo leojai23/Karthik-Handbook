@@ -1,0 +1,796 @@
+<title>P&amp;ID Reading &amp; Process Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --proc:#b3701f; --proc-soft:#f6ead5; --proc-ink:#7a4c12;
+    --inst:#1f7a8c; --inst-soft:#dcedf0; --inst-ink:#145561;
+    --code-bg:#121b24; --code-fg:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --proc:#e0a04a; --proc-soft:#332410; --proc-ink:#f2cd94;
+      --inst:#4fc0d4; --inst-soft:#0f2b30; --inst-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-fg:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --proc:#e0a04a; --proc-soft:#332410; --proc-ink:#f2cd94;
+    --inst:#4fc0d4; --inst-soft:#0f2b30; --inst-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-fg:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .sub{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+
+  .nav-search{position:relative;margin:4px 8px 6px;}
+  .nav-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .nav-search input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.85rem;padding:8px 10px 8px 32px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .nav-search input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .nav-search-results{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:360px;overflow-y:auto;z-index:50;display:none;
+  }
+  .nav-search-results.open{display:block;}
+  .nav-search-results a{
+    display:block;padding:9px 12px;text-decoration:none;color:var(--ink);font-size:.84rem;border-bottom:1px solid var(--line-soft);
+  }
+  .nav-search-results a:last-child{border-bottom:none;}
+  .nav-search-results a:hover, .nav-search-results a.sel{background:var(--line-soft);}
+  .nav-search-results .r-kind{
+    font-family:"IBM Plex Mono",monospace;font-size:.65rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:2px;
+  }
+  .nav-search-results .r-empty{padding:14px 12px;color:var(--muted);font-size:.83rem;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.proc-link{border-left:3px solid var(--proc);padding-left:9px;}
+  nav.side a.inst-link{border-left:3px solid var(--inst);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner .n{font-size:1.1rem;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .domain-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .domain-box.proc{border-left-color:var(--proc);}
+  .domain-box.inst{border-left-color:var(--inst);}
+  .domain-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .domain-box.proc .tag{background:var(--proc-soft);color:var(--proc-ink);}
+  .domain-box.inst .tag{background:var(--inst-soft);color:var(--inst-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-fg);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .diagram{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .diagram svg{width:100%;height:auto;display:block;}
+  .diagram figcaption{margin-top:10px;color:var(--muted);font-size:.86rem;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-output{margin-top:18px;}
+  .tool-error{color:var(--warn);font-size:.85rem;margin-top:8px;font-family:"IBM Plex Mono",monospace;}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;}
+  .result-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .result-card .r-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .result-card .r-value{font-family:"IBM Plex Mono",monospace;font-size:1.15rem;font-weight:600;margin-top:4px;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">P&amp;ID Reading<span class="sub">Basic &rarr; Advanced</span></p>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="page-search-input" placeholder="Search this page..." autocomplete="off">
+      <div class="nav-search-results" id="page-search-results"></div>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#tag-tool">Instrument Tag Decoder</a>
+      <a href="#line-tool">Line Type Reference</a>
+      <a href="#bubble-tool">Bubble Symbol Reference</a>
+      <a href="#loop-tool">Loop Numbering Generator</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a class="proc-link" href="#what-is-pid">What a P&amp;ID Is (and Isn't)</a>
+      <a class="proc-link" href="#equipment-symbols">Equipment Symbols</a>
+      <a class="inst-link" href="#line-types">Line Types: Piping vs Signals</a>
+      <a class="inst-link" href="#instrument-bubbles">Instrument Bubbles: Location</a>
+      <a class="inst-link" href="#tag-numbers">Instrument Tag Numbers</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="inst-link" href="#reading-a-loop">Reading a Simple Control Loop</a>
+      <a class="inst-link" href="#common-combinations">Common Tag Combinations</a>
+      <a class="proc-link" href="#fail-safe-valves">Control Valves: Fail Open vs Closed</a>
+      <a class="inst-link" href="#loop-diagrams">Loop Diagrams: One Level Deeper</a>
+      <a class="inst-link" href="#alarms-interlocks">Alarms &amp; Interlocks</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced</p>
+      <a class="proc-link" href="#document-hierarchy">PFD vs P&amp;ID vs Loop Diagram</a>
+      <a class="proc-link" href="#control-philosophy">Control Philosophy &amp; Narrative</a>
+      <a class="inst-link" href="#redundancy-voting">Redundancy &amp; Voting</a>
+      <a class="proc-link" href="#revision-control">Revision Control &amp; As-Builts</a>
+      <a class="proc-link" href="#real-world-complexity">Reading Real-World Complexity</a>
+      <a class="inst-link" href="#pid-to-plc">From P&amp;ID to PLC Program</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Process Documentation Reference</p>
+      <h1>P&amp;ID Reading &amp; Process Control</h1>
+      <p class="lede">A guided path from what a P&amp;ID actually documents through instrument tags, line types, and bubble symbols, into reading complete control loops and the document hierarchy that governs a real process plant. Copper-tagged sections are process/piping; teal-tagged sections are instrumentation.</p>
+    </header>
+
+    <!-- ============ TOOLS ============ -->
+
+    <section class="topic" id="tag-tool">
+      <h2>Instrument Tag Decoder</h2>
+      <p>Pick a first letter (measured variable) and succeeding letter (function) to see what a tag like <code>FT-101</code> actually means, per ISA-5.1.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="tag-first">First letter (measured variable)</label>
+            <select id="tag-first">
+              <option value="F">F &mdash; Flow</option>
+              <option value="T" selected>T &mdash; Temperature</option>
+              <option value="P">P &mdash; Pressure</option>
+              <option value="L">L &mdash; Level</option>
+              <option value="A">A &mdash; Analysis</option>
+              <option value="I">I &mdash; Current</option>
+              <option value="S">S &mdash; Speed</option>
+              <option value="W">W &mdash; Weight/Force</option>
+            </select>
+          </div>
+          <div class="tool-field">
+            <label for="tag-succ">Succeeding letter (function)</label>
+            <select id="tag-succ">
+              <option value="T" selected>T &mdash; Transmit</option>
+              <option value="I">I &mdash; Indicate</option>
+              <option value="C">C &mdash; Control</option>
+              <option value="R">R &mdash; Record</option>
+              <option value="S">S &mdash; Switch</option>
+              <option value="V">V &mdash; Valve (final element)</option>
+              <option value="E">E &mdash; Element (sensor)</option>
+              <option value="AH">AH &mdash; Alarm, High</option>
+              <option value="AL">AL &mdash; Alarm, Low</option>
+            </select>
+          </div>
+          <div class="tool-field">
+            <label for="tag-loop">Loop number</label>
+            <input type="text" id="tag-loop" value="101">
+          </div>
+        </div>
+        <div class="tool-output" id="tag-output"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="line-tool">
+      <h2>Line Type Reference</h2>
+      <p>What a P&amp;ID's line style tells you about the connection it represents.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="line-select">Connection type</label>
+            <select id="line-select">
+              <option value="process">Main process piping</option>
+              <option value="instconn">Instrument connection to process</option>
+              <option value="electrical" selected>Electrical signal</option>
+              <option value="pneumatic">Pneumatic signal</option>
+              <option value="software">Software/data link</option>
+            </select>
+          </div>
+        </div>
+        <div class="tool-output" id="line-output"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="bubble-tool">
+      <h2>Bubble Symbol Reference</h2>
+      <p>What the lines through (or around) an instrument's bubble indicate about where it's physically located and displayed.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="bubble-select">Bubble style</label>
+            <select id="bubble-select">
+              <option value="field">Plain circle, no line</option>
+              <option value="panel" selected>Circle with single solid line</option>
+              <option value="local">Circle with double line</option>
+              <option value="dcs">Hexagon</option>
+              <option value="plc">Square with diagonal cross</option>
+            </select>
+          </div>
+        </div>
+        <div class="tool-output" id="bubble-output"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="loop-tool">
+      <h2>Loop Numbering Generator</h2>
+      <p>Generate the full set of instrument tags sharing one loop number &mdash; the pattern a real P&amp;ID uses to group every device in one control loop.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="ln-variable">Measured variable</label>
+            <select id="ln-variable">
+              <option value="F">F &mdash; Flow</option>
+              <option value="T" selected>T &mdash; Temperature</option>
+              <option value="P">P &mdash; Pressure</option>
+              <option value="L">L &mdash; Level</option>
+            </select>
+          </div>
+          <div class="tool-field">
+            <label for="ln-number">Loop number</label>
+            <input type="text" id="ln-number" value="101">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="ln-gen">Generate</button>
+        <div class="tool-output" id="ln-output"></div>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="what-is-pid">
+      <h2>What a P&amp;ID Is (and Isn't)</h2>
+      <div class="domain-box proc"><span class="tag">Process</span></div>
+      <p>A Piping and Instrumentation Diagram documents, in detail, every pipe, vessel, valve, and instrument in a process and how they connect &mdash; the single source of truth an operator, maintenance technician, or engineer uses to understand exactly what's physically and electrically present. It's more detailed than a <strong>Process Flow Diagram (PFD)</strong>, which shows the conceptual process flow and major equipment without every valve and instrument (see PFD vs P&amp;ID vs Loop Diagram in Advanced), and less detailed than a <strong>loop diagram</strong>, which drills into one single control loop's actual terminal-by-terminal wiring.</p>
+    </section>
+
+    <section class="topic" id="equipment-symbols">
+      <h2>Equipment Symbols</h2>
+      <div class="domain-box proc"><span class="tag">Process</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Symbol represents</th><th>Typical drawing</th></tr></thead>
+          <tbody>
+            <tr><td>Vessel/tank</td><td>a simple rectangle or rounded-top shape, sized roughly to suggest real proportions</td></tr>
+            <tr><td>Centrifugal pump</td><td>a circle with a triangular "impeller" mark</td></tr>
+            <tr><td>Manual (hand) valve</td><td>a simple bowtie/hourglass shape on the line</td></tr>
+            <tr><td>Control valve</td><td>the same bowtie shape, with an actuator symbol (often a box or diaphragm shape) on top, connected to the signal line driving it</td></tr>
+            <tr><td>Heat exchanger</td><td>a rectangle or a zig-zag line inside a shell, depending on type</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>These equipment symbols are the "nouns" of a P&amp;ID; the lines and instrument bubbles covered next are what turn them into a readable sentence describing the actual process.</p>
+    </section>
+
+    <section class="topic" id="line-types">
+      <h2>Line Types: Piping vs Signals</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>The line style between symbols tells you what kind of connection it is &mdash; this is the detail that lets a P&amp;ID pack an enormous amount of information into one drawing without needing a label on every single line:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Line style</th><th>Represents</th></tr></thead>
+          <tbody>
+            <tr><td>Thick solid line</td><td>main process piping &mdash; the actual product/fluid path</td></tr>
+            <tr><td>Thin solid line</td><td>instrument connection to the process (how a sensor taps into the pipe/vessel)</td></tr>
+            <tr><td>Dashed line</td><td>electrical signal &mdash; a 4&ndash;20mA loop, HART, discrete I/O (see the Electronics &amp; Instrumentation tutorial's current-loop section for exactly what's carried on this line)</td></tr>
+            <tr><td>Dashed line with diagonal cross-hatches</td><td>pneumatic signal &mdash; instrument air driving a valve actuator</td></tr>
+            <tr><td>Dashed line with small circles (o&mdash;o)</td><td>software/data link &mdash; an internal DCS/PLC connection, not a physical wire</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="topic" id="instrument-bubbles">
+      <h2>Instrument Bubbles: Location</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Every instrument is drawn as a circle ("bubble" or "balloon"), and the lines drawn through or around that circle encode where it's physically located and how its reading is displayed:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Bubble style</th><th>Location</th></tr></thead>
+          <tbody>
+            <tr><td>Plain circle, no line</td><td>field-mounted &mdash; physically out in the process area, at the equipment</td></tr>
+            <tr><td>Circle with a single solid horizontal line</td><td>primary location, normally accessible to the operator (a control room DCS screen or a front-of-panel display)</td></tr>
+            <tr><td>Circle with a double horizontal line</td><td>panel-mounted but not normally accessible &mdash; rear-of-panel or a local panel, not the main control room</td></tr>
+            <tr><td>Hexagon</td><td>a computer/DCS function &mdash; the control algorithm lives in software, not as a discrete physical instrument</td></tr>
+            <tr><td>Square with a diagonal cross</td><td>a PLC function, per the ISA-5.1/IEC convention distinguishing PLC logic from DCS logic</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="topic" id="tag-numbers">
+      <h2>Instrument Tag Numbers</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Every instrument's bubble carries a tag &mdash; a <strong>first letter</strong> for the measured variable, one or more <strong>succeeding letters</strong> for the function, and a <strong>loop number</strong> tying every device in one control loop together:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>First letters</th><th></th><th>Succeeding letters</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>F</td><td>Flow</td><td>T</td><td>Transmit</td></tr>
+            <tr><td>T</td><td>Temperature</td><td>I</td><td>Indicate</td></tr>
+            <tr><td>P</td><td>Pressure</td><td>C</td><td>Control</td></tr>
+            <tr><td>L</td><td>Level</td><td>S</td><td>Switch</td></tr>
+            <tr><td>A</td><td>Analysis</td><td>V</td><td>Valve (final control element)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Worked example:</strong> <code>LT-101</code> is a Level Transmitter on loop 101; <code>LIC-101</code> (same loop) is a Level Indicating Controller; <code>LV-101</code> (same loop again) is the Level-controlled Valve. Reading the tag alone already tells you what the device measures or does, before looking at its symbol at all. Try building your own in the Tag Decoder above.</p>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+
+    <div class="level-banner intermediate"><span class="n">&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="reading-a-loop">
+      <h2>Reading a Simple Control Loop</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <figure class="diagram">
+        <svg viewBox="0 0 560 220" role="img" aria-label="A simple level control loop on a P&ID: a tank with a level transmitter LT-101 mounted directly on it, field mounted, connected by a dashed electrical signal line to a level indicating controller LIC-101 shown as a circle with a single line meaning it is displayed on an operator-accessible panel, which sends a signal to a control valve LV-101 on the tank's outlet line, closing the loop by throttling outflow to hold the level at setpoint.">
+          <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">
+            <rect x="30" y="30" width="90" height="110" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <text x="75" y="22" text-anchor="middle" font-size="11">Tank</text>
+            <line x1="75" y1="70" x2="75" y2="120" stroke="var(--inst)" stroke-width="3" opacity=".3"/>
+
+            <circle cx="150" cy="60" r="20" fill="none" stroke="var(--proc)" stroke-width="1.6"/>
+            <text x="150" y="58" text-anchor="middle" fill="var(--proc)" font-size="9">LT</text>
+            <text x="150" y="69" text-anchor="middle" fill="var(--proc)" font-size="9">101</text>
+            <line x1="120" y1="75" x2="138" y2="66" stroke="currentColor" stroke-width="1.3"/>
+            <text x="150" y="38" text-anchor="middle" font-size="9">field-mounted</text>
+
+            <line x1="170" y1="60" x2="290" y2="60" stroke="currentColor" stroke-width="1.3" stroke-dasharray="5,3"/>
+            <polygon points="290,60 282,56 282,64" fill="currentColor"/>
+
+            <circle cx="330" cy="60" r="22" fill="none" stroke="var(--inst)" stroke-width="1.8"/>
+            <line x1="308" y1="60" x2="352" y2="60" stroke="var(--inst)" stroke-width="1.8"/>
+            <text x="330" y="57" text-anchor="middle" fill="var(--inst)" font-size="9">LIC</text>
+            <text x="330" y="68" text-anchor="middle" fill="var(--inst)" font-size="9">101</text>
+            <text x="330" y="38" text-anchor="middle" font-size="9">operator-accessible</text>
+
+            <line x1="330" y1="82" x2="330" y2="130" stroke="currentColor" stroke-width="1.3" stroke-dasharray="5,3"/>
+            <polygon points="330,130 326,122 334,122" fill="currentColor"/>
+
+            <circle cx="330" cy="152" r="18" fill="none" stroke="var(--proc)" stroke-width="1.6"/>
+            <text x="330" y="149" text-anchor="middle" fill="var(--proc)" font-size="9">LV</text>
+            <text x="330" y="160" text-anchor="middle" fill="var(--proc)" font-size="9">101</text>
+
+            <line x1="120" y1="135" x2="312" y2="135" stroke="currentColor" stroke-width="2.4"/>
+            <path d="M 312 135 L 320 128 L 320 142 Z" fill="currentColor"/>
+            <path d="M 348 135 L 340 128 L 340 142 Z" fill="currentColor" transform="scale(-1,1) translate(-696,0)"/>
+            <text x="220" y="125" text-anchor="middle" font-size="9">outlet line</text>
+
+            <line x1="348" y1="135" x2="420" y2="135" stroke="currentColor" stroke-width="2.4"/>
+            <polygon points="420,135 412,131 412,139" fill="currentColor"/>
+          </g>
+        </svg>
+        <figcaption>Reading left to right: <code>LT-101</code> (field-mounted, plain circle) senses tank level and sends an electrical signal (dashed line) to <code>LIC-101</code> (circle with one line &mdash; operator sees this on a panel/DCS screen), which sends a control signal down to <code>LV-101</code>, a valve on the tank's outlet line &mdash; throttling outflow to hold level at setpoint. All three tags share loop number 101, which is exactly how you know they're one coherent control loop rather than three unrelated instruments.</figcaption>
+      </figure>
+    </section>
+
+    <section class="topic" id="common-combinations">
+      <h2>Common Tag Combinations</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tag pattern</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>FT / FIC / FV</td><td>Flow Transmitter &rarr; Flow Indicating Controller &rarr; Flow (control) Valve</td></tr>
+            <tr><td>PT / PIC / PV</td><td>Pressure Transmitter &rarr; Pressure Indicating Controller &rarr; Pressure Valve</td></tr>
+            <tr><td>TT / TIC / TV</td><td>Temperature Transmitter &rarr; Temperature Indicating Controller &rarr; Temperature Valve</td></tr>
+            <tr><td>LSH / LSL</td><td>Level Switch, High / Level Switch, Low &mdash; a discrete on/off switch at a setpoint, not a continuous transmitter</td></tr>
+            <tr><td>LAH / LAL</td><td>Level Alarm, High / Level Alarm, Low &mdash; an alarm triggered from a transmitter's reading rather than a dedicated switch</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The pattern is consistent enough that, once the identification letters are internalised, an entire P&amp;ID becomes readable as a story told through its tags, well before examining a single symbol's shape in detail.</p>
+    </section>
+
+    <section class="topic" id="fail-safe-valves">
+      <h2>Control Valves: Fail Open vs Fail Closed</h2>
+      <div class="domain-box proc"><span class="tag">Process</span></div>
+      <p>A control valve's symbol on a P&amp;ID typically notes its fail-safe position &mdash; <strong>FO</strong> (fails open) or <strong>FC</strong> (fails closed) &mdash; the position the valve mechanically springs to if it loses actuating power or signal. This is a deliberate safety design choice, exactly the same fail-safe philosophy as the Electrical Safety tutorial's "energized to run" wiring convention: a cooling-water valve to a reactor should typically be <strong>FO</strong> (losing signal shouldn't also lose cooling), while a valve feeding fuel to a burner should typically be <strong>FC</strong> (losing signal should stop fuel flow, not leave it flowing unchecked).</p>
+    </section>
+
+    <section class="topic" id="loop-diagrams">
+      <h2>Loop Diagrams: One Level Deeper</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Where a P&amp;ID shows that <code>LT-101</code> connects to <code>LIC-101</code> connects to <code>LV-101</code>, a <strong>loop diagram</strong> shows exactly how &mdash; terminal numbers, wire numbers, cable types, junction boxes, power supply sources, down to the specific PLC I/O card and channel each device lands on. This is the direct instrumentation-side equivalent of the Control Panel Design tutorial's wire numbering and terminal block documentation, scoped to one complete control loop rather than one physical panel &mdash; the document a technician actually uses when troubleshooting why <code>LIC-101</code> isn't reading correctly.</p>
+    </section>
+
+    <section class="topic" id="alarms-interlocks">
+      <h2>Alarms &amp; Interlocks</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>An <strong>alarm</strong> (<code>LAH-101</code>, Level Alarm High) informs the operator that a value has crossed a threshold &mdash; it demands attention but takes no automatic action on its own. An <strong>interlock</strong> automatically takes a protective action (closing a valve, stopping a pump) when a condition is met, with or without operator involvement &mdash; the direct process-side equivalent of the PLC Learning tutorial's safety interlocking concept. A well-documented P&amp;ID distinguishes these clearly, because confusing "the operator will be warned" with "the system will automatically protect itself" is exactly the kind of gap that matters when something actually goes wrong.</p>
+    </section>
+
+    <!-- ============ ADVANCED ============ -->
+
+    <div class="level-banner advanced"><span class="n">&#9679;</span> Advanced</div>
+
+    <section class="topic" id="document-hierarchy">
+      <h2>PFD vs P&amp;ID vs Loop Diagram</h2>
+      <div class="domain-box proc"><span class="tag">Process</span></div>
+      <p>Three documents, increasing in detail, each serving a different audience and purpose:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Document</th><th>Shows</th><th>Used by</th></tr></thead>
+          <tbody>
+            <tr><td>PFD (Process Flow Diagram)</td><td>major equipment, overall flow, key stream data (temperatures, pressures, flow rates at design conditions) &mdash; conceptual, not every valve/instrument</td><td>process engineers, early design, management overviews</td></tr>
+            <tr><td>P&amp;ID</td><td>every pipe, valve, vessel, and instrument, with tags and line types as covered throughout this tutorial</td><td>operators, maintenance, control engineers &mdash; the day-to-day reference</td></tr>
+            <tr><td>Loop diagram</td><td>one single loop's complete wiring, terminal-by-terminal</td><td>instrumentation technicians troubleshooting that specific loop</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Each document deliberately omits detail the others carry &mdash; a PFD overloaded with every instrument tag would be unreadable at the level it's meant to communicate, and a P&amp;ID without instrument tags would be useless for the troubleshooting job it exists to support.</p>
+    </section>
+
+    <section class="topic" id="control-philosophy">
+      <h2>Control Philosophy &amp; Narrative</h2>
+      <div class="domain-box proc"><span class="tag">Process</span></div>
+      <p>Before (and alongside) the P&amp;ID's symbols and tags, a <strong>control narrative</strong> (or control philosophy document) describes, in plain prose, the intended control strategy: what each loop is supposed to do, under what conditions, and why. The P&amp;ID is the implementation of that narrative in symbolic form; when a loop's behaviour seems wrong, the narrative is often the faster place to check first &mdash; "is the equipment doing what the P&amp;ID shows?" versus "is the P&amp;ID even showing what was intended?" are two different questions, and the narrative answers the second.</p>
+    </section>
+
+    <section class="topic" id="redundancy-voting">
+      <h2>Redundancy &amp; Voting</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Safety-critical measurements sometimes use multiple redundant transmitters with a <strong>voting</strong> scheme &mdash; a common notation is <strong>2oo3</strong> ("two out of three"): three independent transmitters measure the same variable, and the safety system acts only when at least two agree a trip condition exists, protecting against both a single transmitter failing low (falsely triggering a trip) and a single transmitter failing high (masking a real hazard). This sits squarely in Safety Instrumented System (SIS) territory &mdash; a deeper, more specialized field than this tutorial covers, but the voting concept itself is worth recognising on sight when it appears on a P&amp;ID.</p>
+    </section>
+
+    <section class="topic" id="revision-control">
+      <h2>Revision Control &amp; As-Builts</h2>
+      <div class="domain-box proc"><span class="tag">Process</span></div>
+      <p>Exactly the same discipline as the Control Panel Design tutorial's as-built documentation section, applied to the process side: a P&amp;ID drawn during design rarely matches the plant exactly as commissioned and subsequently modified, and an out-of-date P&amp;ID is actively dangerous &mdash; a technician trusting it during lockout/tagout (see the Electrical Safety tutorial) could isolate the wrong valve entirely if a field modification was never reflected back into the drawing. P&amp;IDs carry revision numbers and dates for exactly this reason, and a disciplined site treats "update the P&amp;ID" as part of making any physical change, not an optional afterthought.</p>
+    </section>
+
+    <section class="topic" id="real-world-complexity">
+      <h2>Reading Real-World Complexity</h2>
+      <div class="domain-box proc"><span class="tag">Process</span></div>
+      <p>Real plants have dozens of loops with similar functions, so loop numbers are often structured rather than arbitrary &mdash; an area or unit prefix (e.g. loops 100&ndash;199 for Unit 1, 200&ndash;299 for Unit 2) keeps related equipment grouped and makes a tag's rough location inferable from its number alone. Large P&amp;IDs also span multiple sheets, with cross-reference symbols (a line exiting one sheet with a note pointing to the continuing sheet and drawing number) showing where a pipe or signal physically continues &mdash; reading a real multi-sheet P&amp;ID set fluently just means following that same tag-and-line discipline across sheet boundaries rather than assuming everything fits on one page.</p>
+    </section>
+
+    <section class="topic" id="pid-to-plc">
+      <h2>From P&amp;ID to PLC Program</h2>
+      <div class="domain-box inst"><span class="tag">Instrumentation</span></div>
+      <p>Closing the loop back to the rest of this Handbook: <code>LIC-101</code> on a P&amp;ID isn't an abstract symbol &mdash; it's a specific PLC analog input (reading <code>LT-101</code>'s scaled value, exactly the Analog I/O scaling covered in the PLC Learning tutorial), a PID instruction block (the same PID concept introduced in the Electronics and PLC tutorials, now with a concrete worked loop to tune), and an analog output driving <code>LV-101</code>. Reading a P&amp;ID fluently is, in a real sense, reading the specification for what the PLC program still needs to implement &mdash; the documentation and the code are two views of the exact same control loop.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+
+    <div class="level-banner basic" id="practice-exercises" style="margin-top:56px;"><span class="n">&#9679;</span> Practice Exercises</div>
+
+    <section class="topic">
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Decode an instrument tag</summary>
+        <div class="ex-body">
+          <p>What does the tag <code>PT-205</code> represent?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            A <strong>Pressure Transmitter</strong> on loop <strong>205</strong>. Confirm it in the Tag Decoder above.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Identify a line type</summary>
+        <div class="ex-body">
+          <p>A P&amp;ID shows a dashed line with small diagonal cross-hatches running from a controller to a valve actuator. What does this line represent?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            A <strong>pneumatic signal</strong> &mdash; instrument air driving the valve actuator, as opposed to a plain dashed line (electrical) or a dashed line with circles (software link).
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Interpret a bubble's location notation</summary>
+        <div class="ex-body">
+          <p>An instrument on a P&amp;ID is drawn as a circle with a single solid horizontal line through it. What does this tell you about where the operator sees its reading?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            It's in the <strong>primary location, normally accessible to the operator</strong> &mdash; a control room DCS screen or front-of-panel display, as opposed to a plain circle (field-mounted, no remote display) or a double-line circle (panel-mounted but not normally accessible).
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Choose a valve's fail-safe position</summary>
+        <div class="ex-body">
+          <p>A control valve regulates cooling water flow into a reactor that will overheat dangerously if cooling is lost. Should this valve be specified fail-open (FO) or fail-closed (FC), and why?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <strong>Fail-open (FO)</strong>. If the valve loses its actuating signal or power, it must default to a safe state &mdash; here, that means cooling continues rather than stopping, since loss of cooling is the dangerous condition. This mirrors the same "energized to run, de-energized to stop safely" logic from the Electrical Safety tutorial's fail-safe wiring discussion.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Walk through a complete control loop</summary>
+        <div class="ex-body">
+          <p>A P&amp;ID shows <code>FT-301</code> (field-mounted) &rarr; <code>FIC-301</code> (circle with single line) &rarr; <code>FV-301</code> on a feed line into a mixing vessel, with FV-301 marked FC. Describe what this loop does and its safety behaviour in plain English.</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            A flow transmitter at the field (<code>FT-301</code>) measures flow into the vessel and sends it electrically to a flow indicating controller visible to the operator (<code>FIC-301</code>), which compares it to a setpoint and adjusts a control valve (<code>FV-301</code>) on the feed line to hold that flow rate. Because the valve is fail-closed, losing signal or actuating power stops the feed flow entirely &mdash; the safe default for a feed stream into a vessel, preventing uncontrolled overfilling or overflow if the control loop itself fails.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Explain why a loop diagram exists separately from the P&amp;ID</summary>
+        <div class="ex-body">
+          <p>The P&amp;ID already shows that LT-101 connects to LIC-101. Why does a separate loop diagram exist for the same loop, rather than just adding more detail directly onto the P&amp;ID?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            A P&amp;ID is deliberately scoped to show the whole process at a consistent level of detail across potentially hundreds of loops &mdash; adding full terminal-by-terminal wiring detail for every loop would make it unreadable at the level it's meant to serve (understanding the overall process). A loop diagram trades that breadth for depth on exactly one loop, giving a technician the terminal numbers, wire numbers, and I/O card/channel information actually needed to troubleshoot that specific loop, the same way the Control Panel Design tutorial's as-built wiring detail exists separately from a simpler overview schematic.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  // ---------- Tag decoder ----------
+  var FIRST_LETTERS = {
+    F: 'Flow', T: 'Temperature', P: 'Pressure', L: 'Level', A: 'Analysis',
+    I: 'Current', S: 'Speed', W: 'Weight/Force'
+  };
+  var SUCC_LETTERS = {
+    T: 'Transmitter', I: 'Indicator', C: 'Controller', R: 'Recorder',
+    S: 'Switch', V: 'Valve (final control element)', E: 'Element (primary sensor)',
+    AH: 'Alarm, High', AL: 'Alarm, Low'
+  };
+  function renderTag(){
+    var first = document.getElementById('tag-first').value;
+    var succ = document.getElementById('tag-succ').value;
+    var loop = document.getElementById('tag-loop').value.trim() || '101';
+    var tag = first + succ + '-' + loop;
+    var desc = FIRST_LETTERS[first] + ' ' + SUCC_LETTERS[succ] + ' on loop ' + loop;
+    document.getElementById('tag-output').innerHTML =
+      '<div class="result-card" style="margin-top:14px;max-width:460px;"><div class="r-label">Tag</div><div class="r-value" style="font-size:1.3rem;">' + tag + '</div>' +
+      '<div style="margin-top:8px;font-size:.9rem;color:var(--muted);font-family:\'IBM Plex Sans\',sans-serif;">' + desc + '</div></div>';
+  }
+  document.getElementById('tag-first').addEventListener('change', renderTag);
+  document.getElementById('tag-succ').addEventListener('change', renderTag);
+  document.getElementById('tag-loop').addEventListener('input', renderTag);
+  renderTag();
+
+  // ---------- Line type reference ----------
+  var LINES = {
+    process: { style: 'Thick solid line', meaning: 'Main process piping — the actual product/fluid flow path.' },
+    instconn: { style: 'Thin solid line', meaning: 'Instrument connection to the process — how a sensor physically taps into a pipe or vessel.' },
+    electrical: { style: 'Dashed line', meaning: 'Electrical signal — a 4–20mA loop, HART, or discrete I/O wiring.' },
+    pneumatic: { style: 'Dashed line, diagonal cross-hatches', meaning: 'Pneumatic signal — instrument air driving a valve actuator or other pneumatic device.' },
+    software: { style: 'Dashed line with small circles (o—o)', meaning: 'Software/data link — an internal DCS/PLC connection, not a physical field wire.' }
+  };
+  function renderLine(){
+    var v = document.getElementById('line-select').value;
+    var info = LINES[v];
+    document.getElementById('line-output').innerHTML =
+      '<div class="result-card" style="margin-top:14px;max-width:460px;"><div class="r-label">' + info.style + '</div><div class="r-value" style="font-size:.9rem;font-weight:400;">' + info.meaning + '</div></div>';
+  }
+  document.getElementById('line-select').addEventListener('change', renderLine);
+  renderLine();
+
+  // ---------- Bubble reference ----------
+  var BUBBLES = {
+    field: 'Field-mounted — physically located out in the process area, at the equipment itself.',
+    panel: 'Primary location, normally accessible to the operator — a control room DCS screen or front-of-panel display.',
+    local: 'Panel-mounted but not normally accessible — rear-of-panel or a local panel, not the main control room.',
+    dcs: 'A computer/DCS function — the control algorithm lives in software, not as a discrete physical instrument.',
+    plc: 'A PLC function, per the ISA-5.1/IEC convention distinguishing PLC logic from DCS logic.'
+  };
+  function renderBubble(){
+    var v = document.getElementById('bubble-select').value;
+    document.getElementById('bubble-output').innerHTML =
+      '<div class="result-card" style="margin-top:14px;max-width:460px;"><div class="r-value" style="font-size:.95rem;font-weight:400;">' + BUBBLES[v] + '</div></div>';
+  }
+  document.getElementById('bubble-select').addEventListener('change', renderBubble);
+  renderBubble();
+
+  // ---------- Loop numbering generator ----------
+  var FUNCS = {
+    F: [['T','Transmitter'],['IC','Indicating Controller'],['V','Valve']],
+    T: [['T','Transmitter'],['IC','Indicating Controller'],['V','Valve']],
+    P: [['T','Transmitter'],['IC','Indicating Controller'],['V','Valve']],
+    L: [['T','Transmitter'],['IC','Indicating Controller'],['V','Valve']]
+  };
+  document.getElementById('ln-gen').addEventListener('click', function(){
+    var variable = document.getElementById('ln-variable').value;
+    var loop = document.getElementById('ln-number').value.trim();
+    if (!loop){ document.getElementById('ln-output').innerHTML = '<p class="tool-error">Enter a loop number.</p>'; return; }
+    var rows = FUNCS[variable].map(function(f){
+      return variable + f[0] + '-' + loop + ' (' + f[1] + ')';
+    });
+    document.getElementById('ln-output').innerHTML = '<pre>' + rows.join('\n') + '</pre>';
+  });
+
+  // ---------- In-page search ----------
+  var searchIndex = [];
+  document.querySelectorAll('section.topic[id]').forEach(function(sec){
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    searchIndex.push({ kind: 'Section', title: h2.textContent, id: sec.id, text: sec.textContent.toLowerCase() });
+  });
+  document.querySelectorAll('details.ex').forEach(function(ex, i){
+    var summary = ex.querySelector('summary');
+    var title = summary.textContent.replace(/^(Basic|Intermediate|Advanced)\s*/i, '').trim();
+    if (!ex.id) ex.id = 'ex-auto-' + i;
+    searchIndex.push({ kind: 'Exercise', title: title, id: ex.id, text: ex.textContent.toLowerCase(), isEx: true });
+  });
+
+  var input = document.getElementById('page-search-input');
+  var results = document.getElementById('page-search-results');
+
+  function renderResults(list){
+    if (list.length === 0){ results.innerHTML = '<div class="r-empty">No matches.</div>'; results.classList.add('open'); return; }
+    results.innerHTML = list.slice(0,12).map(function(r){
+      return '<a href="#' + r.id + '" data-id="' + r.id + '" data-ex="' + (r.isEx?'1':'0') + '"><span class="r-kind">' + r.kind + '</span>' + r.title + '</a>';
+    }).join('');
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', function(){
+    var q = input.value.trim().toLowerCase();
+    if (!q){ results.classList.remove('open'); return; }
+    var matches = searchIndex.filter(function(item){ return item.text.indexOf(q) !== -1; });
+    renderResults(matches);
+  });
+
+  results.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if (!a) return;
+    var isEx = a.dataset.ex === '1';
+    if (isEx){
+      e.preventDefault();
+      var id = a.dataset.id;
+      var el = document.getElementById(id);
+      if (el){
+        el.open = true;
+        setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); }, 30);
+      }
+      results.classList.remove('open');
+      input.value = '';
+    } else {
+      results.classList.remove('open');
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!results.contains(e.target) && e.target !== input){ results.classList.remove('open'); }
+  });
+})();
+</script>
