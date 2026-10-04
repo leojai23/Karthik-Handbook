@@ -1,0 +1,791 @@
+<title>VFDs &amp; Motor Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --motor:#b3701f; --motor-soft:#f6ead5; --motor-ink:#7a4c12;
+    --drive:#1f7a8c; --drive-soft:#dcedf0; --drive-ink:#145561;
+    --code-bg:#121b24; --code-ink:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --motor:#e0a04a; --motor-soft:#332410; --motor-ink:#f2cd94;
+      --drive:#4fc0d4; --drive-soft:#0f2b30; --drive-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-ink:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --motor:#e0a04a; --motor-soft:#332410; --motor-ink:#f2cd94;
+    --drive:#4fc0d4; --drive-soft:#0f2b30; --drive-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-ink:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .sub{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+
+  .nav-search{position:relative;margin:4px 8px 6px;}
+  .nav-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .nav-search input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.85rem;padding:8px 10px 8px 32px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .nav-search input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .nav-search-results{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:360px;overflow-y:auto;z-index:50;display:none;
+  }
+  .nav-search-results.open{display:block;}
+  .nav-search-results a{
+    display:block;padding:9px 12px;text-decoration:none;color:var(--ink);font-size:.84rem;border-bottom:1px solid var(--line-soft);
+  }
+  .nav-search-results a:last-child{border-bottom:none;}
+  .nav-search-results a:hover, .nav-search-results a.sel{background:var(--line-soft);}
+  .nav-search-results .r-kind{
+    font-family:"IBM Plex Mono",monospace;font-size:.65rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:2px;
+  }
+  .nav-search-results .r-empty{padding:14px 12px;color:var(--muted);font-size:.83rem;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.motor-link{border-left:3px solid var(--motor);padding-left:9px;}
+  nav.side a.drive-link{border-left:3px solid var(--drive);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner .n{font-size:1.1rem;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .domain-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .domain-box.motor{border-left-color:var(--motor);}
+  .domain-box.drive{border-left-color:var(--drive);}
+  .domain-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .domain-box.motor .tag{background:var(--motor-soft);color:var(--motor-ink);}
+  .domain-box.drive .tag{background:var(--drive-soft);color:var(--drive-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .diagram{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .diagram svg{width:100%;height:auto;display:block;}
+  .diagram figcaption{margin-top:10px;color:var(--muted);font-size:.86rem;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-output{margin-top:18px;}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;}
+  .result-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .result-card .r-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .result-card .r-value{font-family:"IBM Plex Mono",monospace;font-size:1.15rem;font-weight:600;margin-top:4px;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">VFDs &amp; Motor Control<span class="sub">Basic &rarr; Advanced</span></p>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="page-search-input" placeholder="Search this page..." autocomplete="off">
+      <div class="nav-search-results" id="page-search-results"></div>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#speed-tool">Sync Speed &amp; Slip Calculator</a>
+      <a href="#vhz-tool">V/Hz Ratio Calculator</a>
+      <a href="#affinity-tool">Affinity Laws Calculator</a>
+      <a href="#inrush-tool">DOL vs Star-Delta Inrush</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a class="motor-link" href="#why-control">Why Motors Need Starting Control</a>
+      <a class="motor-link" href="#induction-motor">3-Phase Induction Motor Basics</a>
+      <a class="motor-link" href="#nameplate">Motor Nameplate Data</a>
+      <a class="motor-link" href="#contactors-dol">Contactors &amp; Direct-On-Line Starting</a>
+      <a class="motor-link" href="#star-delta">Star-Delta Starting</a>
+      <a class="motor-link" href="#soft-starters">Soft Starters</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="drive-link" href="#what-is-vfd">What Is a VFD</a>
+      <a class="drive-link" href="#vhz-control">V/Hz Control</a>
+      <a class="drive-link" href="#vfd-parameters">VFD Parameters &amp; Setup</a>
+      <a class="drive-link" href="#braking-methods">Braking Methods</a>
+      <a class="drive-link" href="#vfd-wiring">VFD Wiring &amp; Cable Effects</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced</p>
+      <a class="motor-link" href="#motor-protection">Motor Protection</a>
+      <a class="drive-link" href="#harmonics">Harmonics &amp; Power Quality</a>
+      <a class="drive-link" href="#bearing-currents">Bearing Currents &amp; Reflected Wave</a>
+      <a class="drive-link" href="#fault-diagnosis">VFD Fault Diagnosis</a>
+      <a class="motor-link" href="#energy-savings">Energy Savings: the Affinity Laws</a>
+      <a class="drive-link" href="#vfd-plc-integration">Integrating VFDs with PLCs</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Industrial Control Tutorial</p>
+      <h1>VFDs &amp; Motor Control</h1>
+      <p class="lede">A guided path from why a motor can't just be switched straight onto the line, through the starting methods that manage that problem, into how a variable frequency drive actually works and the field issues it introduces. Copper-tagged sections are the motor/mechanical side; teal-tagged sections are the drive/electronics side.</p>
+    </header>
+
+    <!-- ============ TOOLS ============ -->
+
+    <section class="topic" id="speed-tool">
+      <h2>Synchronous Speed &amp; Slip Calculator</h2>
+      <p>An induction motor's magnetic field rotates at <code>N<sub>sync</sub> = 120f / P</code> (f = supply frequency in Hz, P = number of poles). The rotor always turns slightly slower than this &mdash; the difference is <strong>slip</strong>.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="sp-f">Supply frequency, Hz</label>
+            <input type="text" id="sp-f" value="50">
+          </div>
+          <div class="tool-field">
+            <label for="sp-p">Poles</label>
+            <select id="sp-p">
+              <option value="2">2</option>
+              <option value="4" selected>4</option>
+              <option value="6">6</option>
+              <option value="8">8</option>
+            </select>
+          </div>
+          <div class="tool-field">
+            <label for="sp-actual">Actual (nameplate) speed, RPM</label>
+            <input type="text" id="sp-actual" value="1450">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="sp-calc">Calculate</button>
+        <div class="result-grid" id="sp-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="vhz-tool">
+      <h2>V/Hz Ratio Calculator</h2>
+      <p>A VFD holds voltage proportional to frequency up to rated speed, keeping magnetic flux &mdash; and therefore available torque &mdash; roughly constant across the speed range.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="vh-vrated">Rated voltage, V</label>
+            <input type="text" id="vh-vrated" value="415">
+          </div>
+          <div class="tool-field">
+            <label for="vh-frated">Rated frequency, Hz</label>
+            <input type="text" id="vh-frated" value="50">
+          </div>
+          <div class="tool-field">
+            <label for="vh-ftarget">Target frequency, Hz</label>
+            <input type="text" id="vh-ftarget" value="37.5">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="vh-calc">Calculate</button>
+        <div class="result-grid" id="vh-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="affinity-tool">
+      <h2>Affinity Laws Calculator</h2>
+      <p>For centrifugal pumps and fans, flow scales linearly with speed but power scales with the <strong>cube</strong> of speed &mdash; the entire economic case for using a VFD instead of a throttling valve or damper.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="af-speed">Speed, % of rated</label>
+            <input type="text" id="af-speed" value="80">
+          </div>
+          <div class="tool-field">
+            <label for="af-power">Rated power, kW (optional)</label>
+            <input type="text" id="af-power" value="55">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="af-calc">Calculate</button>
+        <div class="result-grid" id="af-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="inrush-tool">
+      <h2>DOL vs Star-Delta Inrush Comparator</h2>
+      <p>Star-delta starting cuts starting line current to roughly a third of direct-on-line &mdash; at the cost of also cutting starting torque to a third.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="ir-fla">Motor FLA (full-load amps)</label>
+            <input type="text" id="ir-fla" value="100">
+          </div>
+          <div class="tool-field">
+            <label for="ir-mult">DOL inrush multiplier (typ. 5&ndash;7&times;)</label>
+            <input type="text" id="ir-mult" value="6">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="ir-calc">Calculate</button>
+        <div class="result-grid" id="ir-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="why-control">
+      <h2>Why Motors Need Starting Control</h2>
+      <div class="domain-box motor"><span class="tag">Motor</span></div>
+      <p>Switch a standard induction motor straight onto full line voltage and it draws 5&ndash;7 times its rated running current for the first second or two, until it comes up to speed &mdash; <strong>inrush current</strong>. For a small motor on a stiff supply this is a non-issue; for a large motor, it can sag the whole site's voltage, trip upstream protection, and deliver a mechanical jolt to whatever the motor drives (belts, gearboxes, couplings) every single start. Starting methods exist to manage this inrush, this jolt, or both.</p>
+    </section>
+
+    <section class="topic" id="induction-motor">
+      <h2>3-Phase Induction Motor Basics</h2>
+      <div class="domain-box motor"><span class="tag">Motor</span></div>
+      <p>Three AC supply phases, 120&deg; apart in time, energize windings arranged 120&deg; apart around the stator &mdash; the combination produces a magnetic field that rotates at a speed set purely by supply frequency and how many poles the motor is wound for:</p>
+      <pre>N_sync = 120 &times; f / P</pre>
+      <p><strong>Worked example:</strong> 50Hz supply, 4-pole motor &rarr; <code>120&times;50/4 = 1500 RPM</code>. On a 60Hz supply the same 4-pole motor spins at <code>120&times;60/4 = 1800 RPM</code> &mdash; this is exactly why motors rated for 50Hz regions and 60Hz regions carry different nameplate speeds even when otherwise identical.</p>
+      <p>The rotor itself never quite catches up to this rotating field &mdash; it needs that relative motion (the field "cutting across" the rotor) to induce the current that produces torque in the first place. The resulting speed deficit is <strong>slip</strong>, typically 2&ndash;5% at full load: a 1500 RPM sync-speed motor might show 1450 RPM on its nameplate.</p>
+    </section>
+
+    <section class="topic" id="nameplate">
+      <h2>Motor Nameplate Data</h2>
+      <div class="domain-box motor"><span class="tag">Motor</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>Voltage</td><td>rated supply voltage (and winding configuration it applies to, if dual-rated)</td></tr>
+            <tr><td>FLA (Full-Load Amps)</td><td>current drawn at rated load &mdash; the number every overload relay and inrush calculation starts from</td></tr>
+            <tr><td>kW / HP</td><td>rated mechanical output power</td></tr>
+            <tr><td>RPM</td><td>rated speed at full load (below sync speed by the slip amount)</td></tr>
+            <tr><td>Service factor</td><td>how much overload the motor can sustain continuously (e.g. 1.15 = 15% over nameplate load) without exceeding its insulation rating</td></tr>
+            <tr><td>Power factor</td><td>ratio of real to apparent power drawn &mdash; relevant for sizing supply and correction capacitors</td></tr>
+            <tr><td>Frame size</td><td>standardized mechanical dimensions (mounting, shaft height) &mdash; lets a replacement motor bolt straight in</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="topic" id="contactors-dol">
+      <h2>Contactors &amp; Direct-On-Line Starting</h2>
+      <div class="domain-box motor"><span class="tag">Motor</span></div>
+      <p>A contactor is a heavy-duty, coil-operated switch sized to make and break motor-starting current repeatedly without welding its contacts shut. <strong>Direct-On-Line (DOL)</strong> starting is simply closing one contactor straight across the supply to the motor &mdash; the simplest, cheapest method, and the default choice whenever the motor is small enough, or the supply stiff enough, that the inrush current isn't a problem.</p>
+      <p>An overload relay in series with the contactor monitors running current and trips the contactor open if it stays above a set threshold for too long &mdash; the motor's primary protection against a stalled rotor, a mechanical jam, or a developing winding fault, all of which show up first as excess current.</p>
+    </section>
+
+    <section class="topic" id="star-delta">
+      <h2>Star-Delta Starting</h2>
+      <div class="domain-box motor"><span class="tag">Motor</span></div>
+      <p>A 3-phase motor's windings can be connected two ways: <strong>delta</strong> (each winding across two line phases, full line voltage) for normal running, or <strong>star/wye</strong> (each winding from a line phase to a common neutral point, only <code>1/&radic;3</code> of line voltage per winding) for starting. Lower winding voltage means lower winding current, and &mdash; because of how star and delta relate line current to winding current &mdash; the line current the supply actually sees drops to almost exactly a third of what direct-on-line would draw.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 520 220" role="img" aria-label="Starting current over time: direct on line current spikes immediately to about six times full load current and stays high until the motor approaches speed, then drops to running current. Star delta current spikes to only about two times full load current during the star phase, then has a second smaller transition spike when switching to delta, settling at the same running current.">
+          <g font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">
+            <line x1="50" y1="190" x2="500" y2="190" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="50" y1="190" x2="50" y2="20" stroke="currentColor" stroke-width="1.5"/>
+            <text x="50" y="14" font-size="10">Current</text>
+            <text x="495" y="205" text-anchor="end" font-size="10">time &rarr;</text>
+
+            <polyline points="50,190 55,40 230,40 240,170 500,170" fill="none" stroke="var(--motor)" stroke-width="2"/>
+            <text x="120" y="32" fill="var(--motor)" font-weight="600">DOL &mdash; &asymp;6&times; FLA</text>
+
+            <polyline points="50,190 55,120 230,120 235,150 260,90 270,160 500,165" fill="none" stroke="var(--drive)" stroke-width="2"/>
+            <text x="300" y="80" fill="var(--drive)" font-weight="600">Star-Delta &mdash; &asymp;2&times; FLA</text>
+            <text x="260" y="75" fill="var(--drive)" font-size="9">switch to delta</text>
+
+            <line x1="500" y1="165" x2="500" y2="170" stroke="currentColor" stroke-width="1"/>
+            <text x="505" y="180" font-size="9">running (same FLA either way)</text>
+          </g>
+        </svg>
+        <figcaption>Both methods settle at the same running current once up to speed &mdash; the difference is entirely in the starting transient. Star-delta's lower starting current comes at the direct cost of starting torque also dropping to roughly a third, so it only suits loads that don't need full torque to begin moving (pumps, fans) &mdash; not a loaded conveyor or a crusher.</figcaption>
+      </figure>
+      <p><strong>Worked example:</strong> a motor with 100A FLA and a typical 6&times; DOL inrush multiplier draws 600A starting DOL, versus roughly 200A starting star-delta. Try other values in the comparator tool above.</p>
+    </section>
+
+    <section class="topic" id="soft-starters">
+      <h2>Soft Starters</h2>
+      <div class="domain-box motor"><span class="tag">Motor</span></div>
+      <p>A solid-state soft starter uses back-to-back thyristors to ramp the applied voltage up smoothly over an adjustable time, rather than switching abruptly between star and delta taps. This gives a smoother mechanical start (no torque step at the star-to-delta transition point) and more flexible tuning of the start profile, at higher cost than star-delta and without the further benefit of variable running speed that a full VFD provides.</p>
+      <div class="callout tip">
+        <strong>Choosing a starting method</strong>
+        DOL: simple loads, small motors, stiff supply. Star-delta: larger motors, light-starting-torque loads (pumps/fans), cost-sensitive. Soft starter: smoother start needed, but running speed stays fixed. VFD: variable running speed is needed, or the energy savings from reduced-speed running (see Affinity Laws below) justify the cost.
+      </div>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+
+    <div class="level-banner intermediate"><span class="n">&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="what-is-vfd">
+      <h2>What Is a VFD</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <p>A Variable Frequency Drive doesn't just reduce starting current &mdash; it changes the motor's running speed continuously, by generating a supply at whatever frequency the speed reference calls for. Since synchronous speed is directly set by frequency (<code>N_sync = 120f/P</code>), controlling frequency controls speed directly.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 640 170" role="img" aria-label="VFD signal path: three phase AC mains enters a rectifier that converts it to DC, which charges a DC bus smoothed by capacitors, which feeds an inverter built from switching transistors that synthesizes a variable frequency variable voltage three phase output using pulse width modulation, driving the motor.">
+          <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">
+            <rect x="10" y="55" width="100" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="60" y="76" text-anchor="middle">3&Phi; AC Mains</text>
+            <text x="60" y="90" text-anchor="middle" font-size="9">fixed V, fixed f</text>
+
+            <line x1="110" y1="80" x2="148" y2="80" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="148,80 140,76 140,84" fill="currentColor"/>
+
+            <rect x="150" y="55" width="100" height="50" rx="6" fill="none" stroke="var(--motor)" stroke-width="1.6"/>
+            <text x="200" y="76" text-anchor="middle" fill="var(--motor)">Rectifier</text>
+            <text x="200" y="90" text-anchor="middle" font-size="9" fill="var(--motor)">AC &rarr; DC</text>
+
+            <line x1="250" y1="80" x2="288" y2="80" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="288,80 280,76 280,84" fill="currentColor"/>
+            <text x="269" y="70" text-anchor="middle" font-size="9">DC bus</text>
+
+            <rect x="290" y="55" width="110" height="50" rx="6" fill="none" stroke="var(--drive)" stroke-width="1.8"/>
+            <text x="345" y="76" text-anchor="middle" fill="var(--drive)">Inverter</text>
+            <text x="345" y="90" text-anchor="middle" font-size="9" fill="var(--drive)">PWM switching</text>
+
+            <line x1="400" y1="80" x2="438" y2="80" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="438,80 430,76 430,84" fill="currentColor"/>
+            <text x="419" y="70" text-anchor="middle" font-size="9">var. V, var. f</text>
+
+            <rect x="440" y="55" width="100" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="490" y="80" text-anchor="middle">Motor</text>
+          </g>
+        </svg>
+        <figcaption>The rectifier and DC bus strip away the fixed-frequency mains entirely; the inverter then synthesizes a brand-new three-phase output at whatever frequency (and matching voltage, see V/Hz Control below) the speed reference commands &mdash; built from very fast on/off switching (PWM) rather than a true sine wave, which is the root cause of the harmonics and reflected-wave issues covered in Advanced.</figcaption>
+      </figure>
+    </section>
+
+    <section class="topic" id="vhz-control">
+      <h2>V/Hz Control</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <p>A motor's magnetic flux depends on the ratio of applied voltage to frequency. Drop frequency without also dropping voltage and the motor saturates magnetically, overheating and drawing excess current; a VFD's basic control law holds <strong>V/Hz constant</strong> up to the motor's rated (nameplate) frequency, keeping available torque roughly constant across that whole range &mdash; the "constant torque region."</p>
+      <pre>V/Hz ratio = V_rated / f_rated
+V_target  = (V/Hz ratio) &times; f_target</pre>
+      <p><strong>Worked example:</strong> a motor rated 415V/50Hz has a ratio of <code>415/50 = 8.3 V/Hz</code>. Commanded to run at 37.5Hz (75% speed), the drive outputs <code>8.3 &times; 37.5 = 311.3V</code> &mdash; also 75% of rated voltage, keeping the ratio, and the flux, constant. Above rated frequency, voltage can't keep rising (the drive is already at its DC bus limit), so flux &mdash; and available torque &mdash; falls off; this is the "constant power" region used for light loads that need to run above nameplate speed.</p>
+    </section>
+
+    <section class="topic" id="vfd-parameters">
+      <h2>VFD Parameters &amp; Setup</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parameter</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Accel / decel ramp time</td><td>how many seconds to go from zero to max speed (and back) &mdash; too fast trips an overcurrent fault or stresses the load mechanically, too slow wastes process time</td></tr>
+            <tr><td>Min / max frequency</td><td>the usable speed window &mdash; min frequency often set above zero to avoid motor cooling-fan starvation at very low speed on self-cooled motors</td></tr>
+            <tr><td>Carrier (switching) frequency</td><td>how fast the inverter's PWM output switches &mdash; higher reduces audible motor whine but increases drive heat and worsens cable-related issues (see Bearing Currents below)</td></tr>
+            <tr><td>Motor nameplate data entry</td><td>most drives need rated V, Hz, current, and power entered (or auto-tuned) to calculate the correct V/Hz curve and protection thresholds for that specific motor</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="topic" id="braking-methods">
+      <h2>Braking Methods</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>How it works</th></tr></thead>
+          <tbody>
+            <tr><td>Coast to stop</td><td>drive output simply switches off; the load's own friction and inertia bring it to rest &mdash; slowest, simplest, no extra hardware</td></tr>
+            <tr><td>DC injection braking</td><td>once decelerating, the drive injects DC current into the motor windings, creating a static magnetic field that resists rotation &mdash; good for a final firm stop at low speed</td></tr>
+            <tr><td>Dynamic braking</td><td>during deceleration the motor acts as a generator; that energy is dumped as heat through an external braking resistor rather than pushed back to the DC bus</td></tr>
+            <tr><td>Regenerative braking</td><td>a more sophisticated drive feeds that same braking energy back into the AC supply instead of wasting it as heat &mdash; worthwhile where stop/start cycles are frequent and energy recovery pays for the extra hardware</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="topic" id="vfd-wiring">
+      <h2>VFD Wiring &amp; Cable Effects</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <p>The PWM output between drive and motor switches extremely fast, which makes the motor cable behave less like a simple wire and more like a transmission line at longer lengths:</p>
+      <ul>
+        <li><strong>Use shielded, VFD-rated motor cable</strong>, with the shield grounded at the drive end, to contain the radiated EMI those fast edges produce.</li>
+        <li><strong>Keep motor cable runs within the drive manufacturer's rated length</strong> for the installation (often tens of metres without mitigation) &mdash; beyond that, voltage reflections at the motor end can roughly double the peak voltage the motor insulation actually sees, a mechanism covered in Bearing Currents &amp; Reflected Wave below.</li>
+        <li><strong>Route motor cables separately from signal/control cables</strong>, crossing at 90&deg; where they must cross, to minimise coupled noise into sensitive instrumentation wiring &mdash; the same grounding/shielding discipline as the Electronics &amp; Instrumentation tutorial's signal conditioning section, applied to a much higher-energy source.</li>
+      </ul>
+    </section>
+
+    <!-- ============ ADVANCED ============ -->
+
+    <div class="level-banner advanced"><span class="n">&#9679;</span> Advanced</div>
+
+    <section class="topic" id="motor-protection">
+      <h2>Motor Protection</h2>
+      <div class="domain-box motor"><span class="tag">Motor</span></div>
+      <p>Beyond a basic thermal overload relay (which models heating from current alone), VFD-driven motors add protection layers: <strong>PTC thermistors</strong> embedded directly in the windings feed a true winding-temperature signal back to the drive, catching faults a current-based model would miss (e.g. reduced cooling at low speed, since a self-cooled motor's fan slows down with it). Drives also typically offer configurable electronic overload curves matched to the specific motor's thermal characteristics, often more accurate than a generic bimetallic relay.</p>
+    </section>
+
+    <section class="topic" id="harmonics">
+      <h2>Harmonics &amp; Power Quality</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <p>A VFD's rectifier doesn't draw a clean sine-wave current from the supply &mdash; it draws current in pulses near each voltage peak, rich in harmonic frequencies (multiples of the fundamental 50/60Hz). On a site with many drives, these harmonics distort the shared supply voltage waveform for every other connected load, can overheat transformers and neutral conductors, and may trip power-quality limits imposed by the utility.</p>
+      <p>Mitigation scales with severity: a simple <strong>line reactor</strong> (an inductor in series with the drive's input) smooths the current pulses significantly at low cost; dedicated <strong>harmonic filters</strong> or multi-pulse rectifier designs go further where regulatory limits or sensitive nearby equipment demand it.</p>
+    </section>
+
+    <section class="topic" id="bearing-currents">
+      <h2>Bearing Currents &amp; Reflected Wave</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <p>The same fast PWM switching that enables variable frequency output has two field-notorious side effects:</p>
+      <ul>
+        <li><strong>Reflected wave:</strong> on a motor cable long enough relative to the switching edge speed, voltage pulses reflect off the impedance mismatch at the motor terminals, momentarily doubling peak voltage there &mdash; over time this can puncture motor winding insulation not rated for it. Output reactors or dV/dt filters at the drive slow the edges enough to prevent this.</li>
+        <li><strong>Shaft (bearing) currents:</strong> the fast switching induces a small common-mode voltage on the motor shaft; without a return path, it discharges through the bearings' lubricating film as tiny electrical discharge machining (EDM) pits, slowly destroying the bearing races over months. Shaft grounding rings (brushes that give the induced current a low-impedance path to ground, bypassing the bearing) and common-mode chokes on the output are the standard fixes.</li>
+      </ul>
+      <div class="callout warn">
+        <strong>Both failure modes are slow and easy to misdiagnose</strong>
+        A bearing fluted by EDM currents or insulation weakened by reflected-wave stress can run for months before failing, long after the VFD was commissioned &mdash; making it easy to blame "bad bearings" or "bad motor" rather than the actual cable-length or filtering gap that caused it.
+      </div>
+    </section>
+
+    <section class="topic" id="fault-diagnosis">
+      <h2>VFD Fault Diagnosis</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Common fault</th><th>Typical cause</th></tr></thead>
+          <tbody>
+            <tr><td>Overcurrent</td><td>mechanical jam, too-fast accel ramp, short circuit in motor or cable</td></tr>
+            <tr><td>Overvoltage (DC bus)</td><td>decelerating too fast for the load's inertia &mdash; the motor regenerates energy into the bus faster than it can dissipate; needs a braking resistor or a longer decel ramp</td></tr>
+            <tr><td>Undervoltage</td><td>supply sag or loss &mdash; often a site-wide power quality issue, not the drive itself</td></tr>
+            <tr><td>Ground fault</td><td>insulation breakdown in motor or cable, often downstream of long-term reflected-wave or bearing-current damage</td></tr>
+            <tr><td>Overtemperature</td><td>drive heatsink/fan fault, undersized enclosure ventilation, or ambient temperature above rating</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The drive's own fault log and fault-code history (nearly every modern drive keeps one) is almost always the fastest starting point &mdash; read it before opening anything up.</p>
+    </section>
+
+    <section class="topic" id="energy-savings">
+      <h2>Energy Savings: the Affinity Laws</h2>
+      <div class="domain-box motor"><span class="tag">Motor</span></div>
+      <p>For centrifugal pumps and fans specifically (not all loads &mdash; this doesn't apply to constant-torque loads like conveyors or positive-displacement pumps), three relationships hold:</p>
+      <pre>Flow     &prop; speed
+Pressure &prop; speed&sup2;
+Power    &prop; speed&sup3;</pre>
+      <p>The cubic power relationship is the headline number: run a pump at 80% speed and it still delivers 80% flow, but draws only <code>0.8&sup3; = 51.2%</code> of rated power. At 50% speed, flow is halved but power drops to just <code>12.5%</code>. This is why VFD-controlled pumps and fans so often pay for themselves quickly on sites that previously throttled flow with a valve or damper while the motor kept running at full speed (and full power) regardless.</p>
+      <p><strong>Worked example:</strong> a 55kW rated pump running at 70% speed draws <code>55 &times; 0.7&sup3; = 55 &times; 0.343 &asymp; 18.9kW</code> &mdash; roughly a third of its full-speed power, for 70% of the flow. Try other speeds in the calculator above.</p>
+    </section>
+
+    <section class="topic" id="vfd-plc-integration">
+      <h2>Integrating VFDs with PLCs</h2>
+      <div class="domain-box drive"><span class="tag">Drive</span></div>
+      <p>A PLC commands a VFD's speed one of two ways, both already covered elsewhere in this Handbook: an <strong>analog output</strong> &mdash; typically 4&ndash;20mA or 0&ndash;10V &mdash; scaled to the drive's configured frequency range (exactly the Analog I/O Basics and scaling math from the PLC Learning tutorial), or a <strong>digital fieldbus</strong> connection, very often Modbus RTU/TCP, writing a speed-reference register and reading back status/fault words (see the Modbus tutorial's register addressing and function code sections).</p>
+      <p><strong>Worked example:</strong> a drive's analog speed reference spans 0&ndash;50Hz over its 4&ndash;20mA input. To command 37.5Hz (75% speed), the PLC's analog output must produce <code>4 + (37.5&minus;0)/(50&minus;0) &times; 16 = 4 + 12 = 16mA</code> &mdash; the same 4&ndash;20mA scaling formula from the Electronics &amp; Instrumentation tutorial, just driving a drive's reference input instead of reading a transmitter.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+
+    <div class="level-banner basic" id="practice-exercises" style="margin-top:56px;"><span class="n">&#9679;</span> Practice Exercises</div>
+
+    <section class="topic">
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Find synchronous speed and slip</summary>
+        <div class="ex-body">
+          <p>A 4-pole motor runs from a 50Hz supply and shows 1450 RPM on its nameplate at full load. What's the synchronous speed, and what's the slip as a percentage?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>N_sync = 120&times;50/4 = 1500 RPM</code>. Slip = <code>(1500&minus;1450)/1500 = 0.0333</code>, i.e. <strong>3.33%</strong>.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Compare DOL and star-delta starting current</summary>
+        <div class="ex-body">
+          <p>A motor has an FLA of 100A and a typical direct-on-line inrush multiplier of 6&times;. What's the DOL starting current, and roughly what would star-delta starting draw instead?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            DOL: <code>100 &times; 6 = 600A</code>. Star-delta cuts line starting current to roughly a third: <code>600/3 = 200A</code>.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Compute a VFD's output voltage at reduced frequency</summary>
+        <div class="ex-body">
+          <p>A motor is rated 415V at 50Hz. Running it at 37.5Hz under constant V/Hz control, what output voltage should the drive produce?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            Ratio = <code>415/50 = 8.3 V/Hz</code>. At 37.5Hz: <code>8.3 &times; 37.5 = 311.3V</code> &mdash; also 75% of rated voltage, matching the 75% frequency, so flux (and available torque) stays constant.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Diagnose a DC bus overvoltage fault</summary>
+        <div class="ex-body">
+          <p>A VFD trips on a DC bus overvoltage fault every time an operator commands a fast stop on a large, high-inertia fan. What's the likely cause, and what are two ways to fix it?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            The fan's inertia keeps it spinning faster than the commanded decel ramp allows, so the motor regenerates energy into the DC bus faster than the drive can dissipate it, pushing bus voltage up until it trips. Fixes: lengthen the decel ramp time so the load can slow down more gradually, or add a braking resistor (dynamic braking) to actively dissipate the regenerated energy as heat.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Quantify pump energy savings at reduced speed</summary>
+        <div class="ex-body">
+          <p>A pump rated 55kW at full speed is instead run at 70% speed via VFD to match a reduced process demand. Using the affinity laws, roughly how much power does it draw?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            Power &prop; speed&sup3;: <code>55 &times; 0.7&sup3; = 55 &times; 0.343 &asymp; 18.9kW</code> &mdash; about a third of full-speed power, for 70% of the flow. Confirm it in the Affinity Laws calculator above.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Scale a PLC analog output to a VFD speed reference</summary>
+        <div class="ex-body">
+          <p>A VFD accepts a 4&ndash;20mA analog speed reference mapped to 0&ndash;50Hz. A PLC needs to command 37.5Hz (75% of max speed). What current should its analog output produce?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>mA = 4 + (37.5&minus;0)/(50&minus;0) &times; 16 = 4 + 0.75&times;16 = 4 + 12 = 16mA</code>.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  function num(id){ var v = document.getElementById(id).value.trim(); return v === '' ? null : parseFloat(v); }
+
+  // ---------- Sync speed & slip ----------
+  document.getElementById('sp-calc').addEventListener('click', function(){
+    var f = num('sp-f'), P = parseFloat(document.getElementById('sp-p').value), actual = num('sp-actual');
+    if (f===null || actual===null || P<=0) return;
+    var Nsync = 120*f/P;
+    var slip = (Nsync-actual)/Nsync*100;
+    var out = document.getElementById('sp-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Synchronous speed</div><div class="r-value">' + Nsync.toPrecision(5).replace(/\.?0+$/,'') + ' RPM</div></div>' +
+      '<div class="result-card"><div class="r-label">Slip</div><div class="r-value">' + slip.toFixed(2) + '%</div></div>';
+  });
+
+  // ---------- V/Hz ----------
+  document.getElementById('vh-calc').addEventListener('click', function(){
+    var Vr = num('vh-vrated'), Fr = num('vh-frated'), Ft = num('vh-ftarget');
+    if (Vr===null || Fr===null || Ft===null || Fr===0) return;
+    var ratio = Vr/Fr;
+    var Vt = ratio*Ft;
+    var out = document.getElementById('vh-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">V/Hz ratio</div><div class="r-value">' + ratio.toPrecision(4).replace(/\.?0+$/,'') + ' V/Hz</div></div>' +
+      '<div class="result-card"><div class="r-label">Output voltage</div><div class="r-value">' + Vt.toPrecision(5).replace(/\.?0+$/,'') + ' V</div></div>' +
+      '<div class="result-card"><div class="r-label">% of rated speed</div><div class="r-value">' + (Ft/Fr*100).toFixed(1) + '%</div></div>';
+  });
+
+  // ---------- Affinity laws ----------
+  document.getElementById('af-calc').addEventListener('click', function(){
+    var speedPct = num('af-speed'), ratedKW = num('af-power');
+    if (speedPct===null) return;
+    var r = speedPct/100;
+    var flow = r*100, pressure = r*r*100, power = r*r*r*100;
+    var out = document.getElementById('af-output');
+    out.style.display = 'grid';
+    var html =
+      '<div class="result-card"><div class="r-label">Flow</div><div class="r-value">' + flow.toFixed(1) + '% of rated</div></div>' +
+      '<div class="result-card"><div class="r-label">Pressure / head</div><div class="r-value">' + pressure.toFixed(1) + '% of rated</div></div>' +
+      '<div class="result-card"><div class="r-label">Power</div><div class="r-value">' + power.toFixed(1) + '% of rated</div></div>';
+    if (ratedKW !== null && !isNaN(ratedKW)){
+      html += '<div class="result-card"><div class="r-label">Power draw</div><div class="r-value">' + (ratedKW*r*r*r).toPrecision(4).replace(/\.?0+$/,'') + ' kW</div></div>';
+    }
+    out.innerHTML = html;
+  });
+
+  // ---------- DOL vs star-delta inrush ----------
+  document.getElementById('ir-calc').addEventListener('click', function(){
+    var fla = num('ir-fla'), mult = num('ir-mult');
+    if (fla===null || mult===null) return;
+    var dol = fla*mult;
+    var star = dol/3;
+    var out = document.getElementById('ir-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">DOL starting current</div><div class="r-value">' + dol.toPrecision(5).replace(/\.?0+$/,'') + ' A</div></div>' +
+      '<div class="result-card"><div class="r-label">Star-delta starting current</div><div class="r-value">' + star.toPrecision(5).replace(/\.?0+$/,'') + ' A</div></div>' +
+      '<div class="result-card"><div class="r-label">Reduction</div><div class="r-value">&asymp; 1/3 of DOL</div></div>';
+  });
+
+  // ---------- In-page search ----------
+  var searchIndex = [];
+  document.querySelectorAll('section.topic[id]').forEach(function(sec){
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    searchIndex.push({ kind: 'Section', title: h2.textContent, id: sec.id, text: sec.textContent.toLowerCase() });
+  });
+  document.querySelectorAll('details.ex').forEach(function(ex, i){
+    var summary = ex.querySelector('summary');
+    var title = summary.textContent.replace(/^(Basic|Intermediate|Advanced)\s*/i, '').trim();
+    if (!ex.id) ex.id = 'ex-auto-' + i;
+    searchIndex.push({ kind: 'Exercise', title: title, id: ex.id, text: ex.textContent.toLowerCase(), isEx: true });
+  });
+
+  var input = document.getElementById('page-search-input');
+  var results = document.getElementById('page-search-results');
+
+  function renderResults(list){
+    if (list.length === 0){ results.innerHTML = '<div class="r-empty">No matches.</div>'; results.classList.add('open'); return; }
+    results.innerHTML = list.slice(0,12).map(function(r){
+      return '<a href="#' + r.id + '" data-id="' + r.id + '" data-ex="' + (r.isEx?'1':'0') + '"><span class="r-kind">' + r.kind + '</span>' + r.title + '</a>';
+    }).join('');
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', function(){
+    var q = input.value.trim().toLowerCase();
+    if (!q){ results.classList.remove('open'); return; }
+    var matches = searchIndex.filter(function(item){ return item.text.indexOf(q) !== -1; });
+    renderResults(matches);
+  });
+
+  results.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if (!a) return;
+    var isEx = a.dataset.ex === '1';
+    if (isEx){
+      e.preventDefault();
+      var id = a.dataset.id;
+      var el = document.getElementById(id);
+      if (el){
+        el.open = true;
+        setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); }, 30);
+      }
+      results.classList.remove('open');
+      input.value = '';
+    } else {
+      results.classList.remove('open');
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!results.contains(e.target) && e.target !== input){ results.classList.remove('open'); }
+  });
+})();
+</script>
