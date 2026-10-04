@@ -1,0 +1,753 @@
+<title>Control Panel Design &amp; Wiring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --build:#b3701f; --build-soft:#f6ead5; --build-ink:#7a4c12;
+    --spec:#1f7a8c; --spec-soft:#dcedf0; --spec-ink:#145561;
+    --code-bg:#121b24; --code-fg:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --build:#e0a04a; --build-soft:#332410; --build-ink:#f2cd94;
+      --spec:#4fc0d4; --spec-soft:#0f2b30; --spec-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-fg:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --build:#e0a04a; --build-soft:#332410; --build-ink:#f2cd94;
+    --spec:#4fc0d4; --spec-soft:#0f2b30; --spec-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-fg:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .sub{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+
+  .nav-search{position:relative;margin:4px 8px 6px;}
+  .nav-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .nav-search input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.85rem;padding:8px 10px 8px 32px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .nav-search input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .nav-search-results{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:360px;overflow-y:auto;z-index:50;display:none;
+  }
+  .nav-search-results.open{display:block;}
+  .nav-search-results a{
+    display:block;padding:9px 12px;text-decoration:none;color:var(--ink);font-size:.84rem;border-bottom:1px solid var(--line-soft);
+  }
+  .nav-search-results a:last-child{border-bottom:none;}
+  .nav-search-results a:hover, .nav-search-results a.sel{background:var(--line-soft);}
+  .nav-search-results .r-kind{
+    font-family:"IBM Plex Mono",monospace;font-size:.65rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:2px;
+  }
+  .nav-search-results .r-empty{padding:14px 12px;color:var(--muted);font-size:.83rem;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.build-link{border-left:3px solid var(--build);padding-left:9px;}
+  nav.side a.spec-link{border-left:3px solid var(--spec);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner .n{font-size:1.1rem;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .domain-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .domain-box.build{border-left-color:var(--build);}
+  .domain-box.spec{border-left-color:var(--spec);}
+  .domain-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .domain-box.build .tag{background:var(--build-soft);color:var(--build-ink);}
+  .domain-box.spec .tag{background:var(--spec-soft);color:var(--spec-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-fg);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .diagram{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .diagram svg{width:100%;height:auto;display:block;}
+  .diagram figcaption{margin-top:10px;color:var(--muted);font-size:.86rem;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-output{margin-top:18px;}
+  .tool-error{color:var(--warn);font-size:.85rem;margin-top:8px;font-family:"IBM Plex Mono",monospace;}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;}
+  .result-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .result-card .r-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .result-card .r-value{font-family:"IBM Plex Mono",monospace;font-size:1.15rem;font-weight:600;margin-top:4px;}
+  .swatch-dot{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.3);vertical-align:-2px;margin-right:6px;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">Control Panel Design<span class="sub">Basic &rarr; Advanced</span></p>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="page-search-input" placeholder="Search this page..." autocomplete="off">
+      <div class="nav-search-results" id="page-search-results"></div>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#color-tool">Wire Colour Reference</a>
+      <a href="#nema-tool">NEMA/IP Rating Cross-Reference</a>
+      <a href="#number-tool">Wire Numbering Generator</a>
+      <a href="#vdrop-tool">Voltage Drop Calculator</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a class="build-link" href="#why-panel-design">Why Panel Design Matters</a>
+      <a class="build-link" href="#enclosure-basics">Enclosure Basics: NEMA &amp; IP</a>
+      <a class="build-link" href="#din-rail-layout">DIN Rail &amp; Panel Layout</a>
+      <a class="spec-link" href="#wire-colors">Wire Colour Conventions</a>
+      <a class="spec-link" href="#terminal-blocks">Terminal Blocks &amp; Wire Numbering</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="spec-link" href="#reading-schematics">Reading Electrical Schematics</a>
+      <a class="build-link" href="#wire-duct-routing">Wire Duct &amp; Panel Routing</a>
+      <a class="build-link" href="#voltage-drop-sizing">Sizing Conductors: Voltage Drop</a>
+      <a class="build-link" href="#circuit-protection">Circuit Protection: Breakers &amp; Fuses</a>
+      <a class="build-link" href="#grounding-bonding">Grounding &amp; Bonding in a Panel</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced</p>
+      <a class="build-link" href="#panel-heat">Panel Heat Management</a>
+      <a class="spec-link" href="#ul508a">UL 508A &amp; Panel Build Standards</a>
+      <a class="spec-link" href="#documentation">Documentation: As-Builts &amp; BOMs</a>
+      <a class="spec-link" href="#fat-sat">Commissioning: FAT &amp; SAT</a>
+      <a class="build-link" href="#worked-panel-example">A Worked Panel Example</a>
+      <a class="build-link" href="#panel-safety">Panel Safety: Arc Flash &amp; LOTO</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Panel Build Reference</p>
+      <h1>Control Panel Design &amp; Wiring</h1>
+      <p class="lede">A guided path from why a panel's layout matters at all, through enclosure ratings, wire colour and numbering conventions, into reading schematics, sizing conductors, and bringing every hardware thread in this Handbook together into one physically real, maintainable panel. Copper-tagged sections are physical build; teal-tagged sections are standards/documentation.</p>
+    </header>
+
+    <!-- ============ TOOLS ============ -->
+
+    <section class="topic" id="color-tool">
+      <h2>Wire Colour Reference</h2>
+      <p>Wire colour conventions differ by region &mdash; this is one of the most common sources of confusion when a panel built to one standard gets wired or serviced by someone trained on another.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="wc-standard">Standard</label>
+            <select id="wc-standard">
+              <option value="nec">NEC (North America)</option>
+              <option value="iec">IEC 60445 (Europe/most of the world)</option>
+            </select>
+          </div>
+        </div>
+        <div class="tool-output" id="wc-output"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="nema-tool">
+      <h2>NEMA/IP Rating Cross-Reference</h2>
+      <p>Approximate equivalents only &mdash; NEMA and IP test different criteria, so this is a planning guide, not a formal conversion.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="nema-select">NEMA type</label>
+            <select id="nema-select">
+              <option value="1">NEMA 1 &mdash; indoor, general purpose</option>
+              <option value="12">NEMA 12 &mdash; indoor, dust/dripping water</option>
+              <option value="4" selected>NEMA 4 &mdash; indoor/outdoor, hose-directed water</option>
+              <option value="4X">NEMA 4X &mdash; as 4, plus corrosion resistance</option>
+              <option value="6P">NEMA 6P &mdash; prolonged submersion</option>
+            </select>
+          </div>
+        </div>
+        <div class="tool-output" id="nema-output"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="number-tool">
+      <h2>Wire Numbering Generator</h2>
+      <p>Generate a sequential block of wire numbers for a terminal strip &mdash; paste straight into a wiring schedule.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="wn-start">Start number</label>
+            <input type="text" id="wn-start" value="101">
+          </div>
+          <div class="tool-field">
+            <label for="wn-count">How many</label>
+            <input type="text" id="wn-count" value="12">
+          </div>
+          <div class="tool-field">
+            <label for="wn-prefix">Prefix (optional)</label>
+            <input type="text" id="wn-prefix" value="">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="wn-gen">Generate</button>
+        <div class="tool-output" id="wn-output"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="vdrop-tool">
+      <h2>Voltage Drop Calculator</h2>
+      <p>Estimated from base copper resistivity at 20&deg;C (<code>&rho; = 1.68&times;10<sup>&minus;8</sup>&Omega;&middot;m</code>) &mdash; real cable tables run a little higher due to stranding and operating temperature, so treat this as a planning estimate, not a substitute for a manufacturer's rated tables.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="vd-current">Load current, A</label>
+            <input type="text" id="vd-current" value="10">
+          </div>
+          <div class="tool-field">
+            <label for="vd-length">One-way length, m</label>
+            <input type="text" id="vd-length" value="20">
+          </div>
+          <div class="tool-field">
+            <label for="vd-csa">Conductor size, mm&sup2;</label>
+            <select id="vd-csa">
+              <option value="1.5">1.5</option>
+              <option value="2.5" selected>2.5</option>
+              <option value="4">4</option>
+              <option value="6">6</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+          <div class="tool-field">
+            <label for="vd-supply">Supply voltage, V</label>
+            <input type="text" id="vd-supply" value="24">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="vd-calc">Calculate</button>
+        <div class="result-grid" id="vd-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="why-panel-design">
+      <h2>Why Panel Design Matters</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>Every PLC, VFD, relay board, and field controller covered elsewhere in this Handbook eventually has to live inside a physical enclosure, wired to real terminals, with a real person expected to troubleshoot it at 2am without the designer in the room. A well-laid-out panel &mdash; consistent wire colours, clear numbering, a schematic that actually matches what's installed &mdash; turns a fault-finding job into minutes; a poorly documented one turns it into hours of tracing wires by hand. This tutorial is about that gap.</p>
+    </section>
+
+    <section class="topic" id="enclosure-basics">
+      <h2>Enclosure Basics: NEMA &amp; IP</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>Two rating systems describe how well an enclosure keeps dust, water, and other contaminants out: <strong>NEMA</strong> (North America) and <strong>IP</strong> (International Protection, used almost everywhere else, including on individual component datasheets even in North America). An IP code is two digits &mdash; the first for solids/dust ingress (0&ndash;6), the second for water ingress (0&ndash;9) &mdash; so IP66 means total dust protection (6) plus protection against powerful water jets (6). NEMA ratings bundle similar protection levels into a single type number but test against a different, North-American-specific set of criteria, which is why the two systems don't convert cleanly &mdash; the tool above gives commonly-cited approximate equivalents, not an official conversion.</p>
+      <p><strong>Common choices:</strong> NEMA 1/IP20-ish for a clean indoor electrical room; NEMA 12/IP52 for a typical indoor industrial panel exposed to dust and occasional drips; NEMA 4X/IP66 for outdoor or washdown environments (food/beverage, anywhere hosed down regularly) with added corrosion resistance.</p>
+    </section>
+
+    <section class="topic" id="din-rail-layout">
+      <h2>DIN Rail &amp; Panel Layout</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>Most panel internals mount on standardised DIN rail, letting terminal blocks, breakers, relays, and small PLCs snap on and off without drilling individual mounting holes. A conventional layout flows logically top-to-bottom or left-to-right: incoming power and protection (main breaker/disconnect) first, then power distribution, then controllers (PLC, drives), then field-side terminal blocks last &mdash; so tracing a circuit from the schematic roughly matches tracing it with your eyes across the physical panel. Leave genuine spare DIN rail and wire duct capacity (20&ndash;30% is a common rule of thumb) for the additions that inevitably come later.</p>
+    </section>
+
+    <section class="topic" id="wire-colors">
+      <h2>Wire Colour Conventions</h2>
+      <div class="domain-box spec"><span class="tag">Standard</span></div>
+      <p>This is one of the sharpest regional differences in panel building &mdash; the same colour means the <em>opposite</em> thing depending on which standard a panel was built to:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Conductor</th><th>NEC (North America)</th><th>IEC 60445 (Europe &amp; most of the world)</th></tr></thead>
+          <tbody>
+            <tr><td>Line 1 / Phase A</td><td><span class="swatch-dot" style="background:#111"></span>Black</td><td><span class="swatch-dot" style="background:#7a4a2a"></span>Brown</td></tr>
+            <tr><td>Line 2 / Phase B</td><td><span class="swatch-dot" style="background:#c0392b"></span>Red</td><td><span class="swatch-dot" style="background:#111"></span>Black</td></tr>
+            <tr><td>Line 3 / Phase C</td><td><span class="swatch-dot" style="background:#2563a8"></span>Blue</td><td><span class="swatch-dot" style="background:#888"></span>Grey</td></tr>
+            <tr><td>Neutral</td><td><span class="swatch-dot" style="background:#eee"></span>White/Grey</td><td><span class="swatch-dot" style="background:#2563a8"></span>Blue</td></tr>
+            <tr><td>Protective Earth/Ground</td><td><span class="swatch-dot" style="background:#1e8449"></span>Green (or bare)</td><td><span class="swatch-dot" style="background:linear-gradient(90deg,#1e8449 50%,#e6c200 50%)"></span>Green/Yellow stripe</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Note that IEC reserves blue strictly for neutral</strong> &mdash; using it for anything else (a switched live, a signal wire) without clear marking at both ends is a specification violation precisely because of how easily it gets mistaken for neutral. Always check which standard governs a given panel before trusting colour alone &mdash; especially on equipment imported from a different region, or when extending an older panel with newer wiring.</p>
+      <div class="callout warn">
+        <strong>Colour is a convention, not a guarantee</strong>
+        Never assume a wire's function purely from its colour without verifying against the schematic, especially on unfamiliar or older equipment. Miswired panels, repairs done to a different standard, and simple mistakes all happen.
+      </div>
+    </section>
+
+    <section class="topic" id="terminal-blocks">
+      <h2>Terminal Blocks &amp; Wire Numbering</h2>
+      <div class="domain-box spec"><span class="tag">Standard</span></div>
+      <p>Terminal blocks are the handoff point between internal panel wiring and field cabling &mdash; each one a single, clearly labelled connection point rather than a wire nut or splice buried in a harness. Every wire in a well-documented panel carries a unique number, printed on a slip-on ferrule at both ends, matching the number shown on the schematic at that exact point &mdash; so a technician can trace any wire from the drawing straight to the physical terminal without following its path by hand. A common convention numbers wires sequentially within a functional group (e.g. 101&ndash;120 for one motor starter circuit, 201&ndash;220 for the next), which is exactly what the Wire Numbering Generator above produces.</p>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+
+    <div class="level-banner intermediate"><span class="n">&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="reading-schematics">
+      <h2>Reading Electrical Schematics</h2>
+      <div class="domain-box spec"><span class="tag">Standard</span></div>
+      <p>An industrial schematic is a ladder diagram, structurally similar to the ladder logic rungs covered in the PLC Learning tutorial &mdash; except it describes real hard-wired relay and contactor circuits rather than software logic. Every component carries a <strong>reference designator</strong> (standardised under IEC 61346) that identifies what it is at a glance:</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 520 190" role="img" aria-label="Schematic reference designators mapped to a motor starter circuit: breaker Q1 feeds contactor K1, which is protected by overload relay F1, which feeds motor M1; each component's wire connections carry wire numbers matching the physical terminal labels, letting a technician trace the drawing directly to the panel.">
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor">
+            <rect x="10" y="60" width="80" height="44" rx="4" fill="none" stroke="var(--build)" stroke-width="1.6"/>
+            <text x="50" y="86" text-anchor="middle" fill="var(--build)">-Q1</text>
+            <text x="50" y="40" text-anchor="middle" font-size="9">breaker</text>
+
+            <line x1="90" y1="82" x2="128" y2="82" stroke="currentColor" stroke-width="1.5"/>
+            <text x="109" y="75" text-anchor="middle" font-size="8">101</text>
+
+            <rect x="130" y="60" width="80" height="44" rx="4" fill="none" stroke="var(--build)" stroke-width="1.6"/>
+            <text x="170" y="86" text-anchor="middle" fill="var(--build)">-K1</text>
+            <text x="170" y="40" text-anchor="middle" font-size="9">contactor</text>
+
+            <line x1="210" y1="82" x2="248" y2="82" stroke="currentColor" stroke-width="1.5"/>
+            <text x="229" y="75" text-anchor="middle" font-size="8">102</text>
+
+            <rect x="250" y="60" width="80" height="44" rx="4" fill="none" stroke="var(--build)" stroke-width="1.6"/>
+            <text x="290" y="86" text-anchor="middle" fill="var(--build)">-F1</text>
+            <text x="290" y="40" text-anchor="middle" font-size="9">overload</text>
+
+            <line x1="330" y1="82" x2="368" y2="82" stroke="currentColor" stroke-width="1.5"/>
+            <text x="349" y="75" text-anchor="middle" font-size="8">103</text>
+
+            <rect x="370" y="60" width="80" height="44" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="410" y="86" text-anchor="middle">M1</text>
+            <text x="410" y="40" text-anchor="middle" font-size="9">motor</text>
+
+            <text x="260" y="140" text-anchor="middle" font-size="9">Each wire number (101, 102, 103&hellip;) is printed on a ferrule at both physical ends &mdash;</text>
+            <text x="260" y="155" text-anchor="middle" font-size="9">matching the drawing to the panel exactly, without needing to trace the cable by hand.</text>
+          </g>
+        </svg>
+        <figcaption>Common designator prefixes: <code>-Q</code> circuit breakers/disconnects, <code>-K</code> contactors/relays, <code>-F</code> fuses/overloads, <code>-M</code> motors, <code>-S</code> switches/pushbuttons, <code>-T</code> transformers. These aren't arbitrary &mdash; they let an experienced technician understand a drawing's rough shape before reading a single label.</figcaption>
+      </figure>
+    </section>
+
+    <section class="topic" id="wire-duct-routing">
+      <h2>Wire Duct &amp; Panel Routing</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>The VFD tutorial's cable-effects section already established why motor power cables radiate significant electrical noise; inside a panel, the practical response is physical separation:</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 560 170" role="img" aria-label="Wire routing comparison: bundling VFD motor power cables in the same duct as low voltage control and communication wiring couples noise directly into the sensitive signals; routing power and control wiring in separate ducts, crossing only at right angles where unavoidable, keeps that noise from coupling in.">
+          <g font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">
+            <text x="130" y="20" text-anchor="middle" font-size="12" font-weight="600" fill="var(--warn)">Bundled &mdash; noise couples in</text>
+            <rect x="40" y="40" width="180" height="70" rx="6" fill="none" stroke="var(--warn)" stroke-width="1.8" stroke-dasharray="4,3"/>
+            <line x1="55" y1="60" x2="205" y2="60" stroke="var(--build)" stroke-width="3"/>
+            <text x="130" y="55" text-anchor="middle" font-size="9" fill="var(--build)">VFD motor power</text>
+            <line x1="55" y1="90" x2="205" y2="90" stroke="var(--spec)" stroke-width="1.5"/>
+            <text x="130" y="105" text-anchor="middle" font-size="9" fill="var(--spec)">Modbus / sensor wiring</text>
+
+            <text x="420" y="20" text-anchor="middle" font-size="12" font-weight="600" fill="var(--good)">Separated &mdash; noise contained</text>
+            <rect x="320" y="35" width="200" height="30" rx="4" fill="none" stroke="var(--build)" stroke-width="1.5"/>
+            <line x1="335" y1="50" x2="505" y2="50" stroke="var(--build)" stroke-width="3"/>
+            <text x="420" y="47" text-anchor="middle" font-size="9" fill="var(--build)">VFD motor power duct</text>
+            <rect x="320" y="90" width="200" height="30" rx="4" fill="none" stroke="var(--spec)" stroke-width="1.5"/>
+            <line x1="335" y1="105" x2="505" y2="105" stroke="var(--spec)" stroke-width="1.5"/>
+            <text x="420" y="102" text-anchor="middle" font-size="9" fill="var(--spec)">Control/comms duct</text>
+            <text x="420" y="140" text-anchor="middle" font-size="9">separate ducts, crossing at 90&deg; only where unavoidable</text>
+          </g>
+        </svg>
+        <figcaption>The fix costs nothing but planning: route power and control wiring in separate ducts, keep a physical gap between them where they run parallel, and cross at right angles only where a crossing is genuinely unavoidable &mdash; a 90&deg; crossing couples far less noise than any length of parallel run.</figcaption>
+      </figure>
+    </section>
+
+    <section class="topic" id="voltage-drop-sizing">
+      <h2>Sizing Conductors: Voltage Drop</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>A conductor sized correctly for ampacity (not overheating) can still be undersized for the run length if voltage drop pushes the far end outside its equipment's tolerance &mdash; a known, common problem for long 24VDC field runs, since sensors and I/O cards typically only tolerate a few percent deviation from nominal. <strong>Worked example:</strong> 10A over a 20m one-way run on 2.5mm&sup2; copper drops about 2.69V on a 24V supply &mdash; over 11%, likely enough to push some 24VDC devices out of their operating range. Upsizing to 4mm&sup2; cuts that to about 1.68V (7%) &mdash; still worth checking against the specific device's tolerance, but a meaningful improvement. Try other combinations in the calculator above; as a rule of thumb, keep voltage drop under 3&ndash;5% for sensitive control circuitry.</p>
+    </section>
+
+    <section class="topic" id="circuit-protection">
+      <h2>Circuit Protection: Breakers &amp; Fuses</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>Both breakers and fuses exist to open a circuit before a fault (overload or short circuit) causes a fire or destroys equipment, but they're not interchangeable in practice: a <strong>fuse</strong> is a one-time sacrificial element, often faster-reacting and available in very precise current/time curves, but it must be physically replaced after it operates. A <strong>breaker</strong> can simply be reset, and modern electronic breakers offer configurable trip curves approaching fuse-like precision &mdash; the practical tradeoff is usually cost and panel space versus the convenience of not stocking spare fuses. Many panels use both: a main breaker for overall disconnect and coarse protection, fuses at individual branch circuits for faster, more selective protection close to the load.</p>
+    </section>
+
+    <section class="topic" id="grounding-bonding">
+      <h2>Grounding &amp; Bonding in a Panel</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>The Electronics &amp; Instrumentation tutorial's signal-conditioning section covers ground loops and single-point grounding from a signal-integrity angle; inside a panel, grounding also has a distinct safety role. Every metal enclosure, DIN rail, and conductive panel component is <strong>bonded</strong> (electrically connected) to a common equipment ground, so a fault that energises any metal part trips the circuit's protection immediately rather than leaving an energised surface waiting to shock whoever touches it next. Keep this safety/equipment ground separate in purpose (though it may share a physical bus) from any dedicated signal ground used for sensitive instrumentation wiring &mdash; mixing the two carelessly is exactly how ground loops and nuisance noise creep into otherwise clean signal wiring.</p>
+    </section>
+
+    <!-- ============ ADVANCED ============ -->
+
+    <div class="level-banner advanced"><span class="n">&#9679;</span> Advanced</div>
+
+    <section class="topic" id="panel-heat">
+      <h2>Panel Heat Management</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>Every VFD, power supply, and transformer inside a sealed enclosure dissipates heat with nowhere to go except through the enclosure walls (natural convection) or active cooling. A higher NEMA/IP rating &mdash; by definition sealing the enclosure more tightly against dust and water &mdash; also seals in heat more effectively, directly working against cooling; a washdown-rated NEMA 4X panel can't simply add louvered vents the way an indoor NEMA 12 panel might. Options in increasing order of complexity: more enclosure surface area (a bigger box), a filtered fan (adds a dust/water ingress path, so incompatible with higher ratings), a sealed air-to-air heat exchanger, or a full air conditioner for high heat loads in a sealed, harsh environment. Sizing any of these properly needs the actual heat load (sum of each component's dissipated watts, from its datasheet) and the enclosure manufacturer's own thermal data &mdash; treat generic online rules of thumb for this calculation with real caution; manufacturer sizing tools exist precisely because the enclosure's specific geometry and material matter.</p>
+    </section>
+
+    <section class="topic" id="ul508a">
+      <h2>UL 508A &amp; Panel Build Standards</h2>
+      <div class="domain-box spec"><span class="tag">Standard</span></div>
+      <p>UL 508A is the standard governing industrial control panel construction in North America (equivalent regional standards, like IEC 61439, apply elsewhere) &mdash; covering component selection, spacing/clearances, wire sizing, and labelling requirements for a panel to carry a UL listing. A key concept it introduces is <strong>SCCR</strong> (Short-Circuit Current Rating): the maximum fault current a panel is rated to withstand without becoming a safety hazard, which must be verified as adequate for the available fault current at the installation site &mdash; a panel with components individually rated fine but an inadequate overall SCCR is a real, if easy-to-overlook, compliance and safety gap.</p>
+    </section>
+
+    <section class="topic" id="documentation">
+      <h2>Documentation: As-Builts &amp; BOMs</h2>
+      <div class="domain-box spec"><span class="tag">Standard</span></div>
+      <p>A schematic drawn before a panel is built almost never exactly matches what ends up installed &mdash; a component substitution, a last-minute wiring change, a field modification months later. An <strong>as-built</strong> drawing is the schematic updated to match reality, and is the single most valuable document for anyone troubleshooting the panel later; a <strong>Bill of Materials (BOM)</strong> lists every component with its manufacturer part number, making replacement parts identifiable years later without guesswork. Both deserve the same revision-control discipline as code &mdash; dated, versioned, and updated the same day a physical change is made, not "whenever there's time."</p>
+    </section>
+
+    <section class="topic" id="fat-sat">
+      <h2>Commissioning: FAT &amp; SAT</h2>
+      <div class="domain-box spec"><span class="tag">Standard</span></div>
+      <p>A <strong>Factory Acceptance Test (FAT)</strong> verifies a panel works correctly at the panel builder's shop, before it ever ships &mdash; power-up checks, I/O point-to-point verification, functional logic tests, all far cheaper to fix on a bench than after installation. A <strong>Site Acceptance Test (SAT)</strong> repeats and extends that verification once the panel is installed and connected to real field wiring and real equipment on-site, catching anything specific to the actual installation (wiring errors in field cabling, sensor placement issues) that a shop test physically couldn't exercise. Skipping either step tends to just move the cost of finding a problem to a more expensive, more disruptive point later.</p>
+    </section>
+
+    <section class="topic" id="worked-panel-example">
+      <h2>A Worked Panel Example</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>Pulling several of this Handbook's subjects into one real panel: a PLC (PLC Learning tutorial) controls a VFD-driven pump (VFD tutorial) and reads a 4&ndash;20mA level transmitter (Electronics &amp; Instrumentation tutorial) through an analog input card, while a Modbus RTU relay board (the field guide referenced in the Modbus tutorial) handles auxiliary on/off loads, and an ESP32 (ESP32 &amp; IoT tutorial) bridges the whole RS-485 segment to an MQTT dashboard for remote monitoring.</p>
+      <p>Physically, that panel separates into exactly the zones this tutorial has covered: incoming power and protection at the top; the PLC, VFD, and relay board each on their own section of DIN rail with clear designators (-A1 PLC, -T1 VFD, -K&hellip; relay outputs); motor power cable to the pump in its own duct, away from the 24VDC Modbus and sensor wiring; every field connection landing on a numbered terminal block; and an as-built drawing that actually reflects which ESP32 GPIO pin ended up wired to which RS-485 adapter, down to the wire number. None of these pieces is complicated in isolation &mdash; the discipline is in applying all of them together, consistently, on every panel.</p>
+    </section>
+
+    <section class="topic" id="panel-safety">
+      <h2>Panel Safety: Arc Flash &amp; LOTO</h2>
+      <div class="domain-box build"><span class="tag">Build</span></div>
+      <p>Two concepts worth knowing even at a reference level: <strong>arc flash</strong> is the explosive release of energy from a short circuit or fault in an energised panel, serious enough that panels above certain voltage/fault-current thresholds require an arc-flash hazard label specifying the required PPE category for anyone working on them live. <strong>Lockout-Tagout (LOTO)</strong> is the formal procedure for de-energising equipment and physically locking it out before anyone works on it, specifically to prevent someone else from re-energising it while work is in progress. Both are deep enough topics &mdash; full of jurisdiction-specific regulatory detail &mdash; to deserve their own dedicated reference rather than the summary treatment here; treat this section as a pointer to go looking for that depth before working on any live panel, not as sufficient training on its own.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+
+    <div class="level-banner basic" id="practice-exercises" style="margin-top:56px;"><span class="n">&#9679;</span> Practice Exercises</div>
+
+    <section class="topic">
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Pick an enclosure rating for a washdown environment</summary>
+        <div class="ex-body">
+          <p>A panel will be installed in a food-processing area that gets hosed down regularly, with added concern about corrosion. Which NEMA rating fits, and roughly what IP rating does that correspond to?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <strong>NEMA 4X</strong>, commonly cited as roughly equivalent to <strong>IP66</strong> &mdash; protection against powerful water jets plus corrosion-resistant construction. Confirm it in the NEMA/IP tool above.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Identify a wire's function from its colour under IEC 60445</summary>
+        <div class="ex-body">
+          <p>In a panel wired to IEC 60445, a conductor is black. What line is it, and how does that differ from what black means under NEC?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            Under IEC, black is <strong>L2</strong> (the second phase). Under NEC, black instead means a hot/phase conductor generally, most often Phase A &mdash; a good illustration of exactly why colour alone, without knowing which standard governs a panel, can be actively misleading.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Compute voltage drop on a 24VDC field run</summary>
+        <div class="ex-body">
+          <p>A 24VDC sensor draws 10A over a 20m one-way cable run using 2.5mm&sup2; copper conductors. What's the voltage drop, and is it likely acceptable for sensitive control circuitry?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>Vdrop &asymp; 2.69V</code>, about <strong>11.2%</strong> of the 24V supply &mdash; well above the typical 3&ndash;5% guideline for sensitive control circuitry, and likely to cause problems. Upsizing the conductor (see the next exercise) is the standard fix.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Identify a reference designator's component type</summary>
+        <div class="ex-body">
+          <p>On a schematic, a component is labelled <code>-F1</code>. What kind of device does that designator conventionally indicate?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            A <strong>fuse or overload relay</strong> (protective device). For comparison: <code>-Q</code> is typically a breaker/disconnect, <code>-K</code> a contactor/relay, <code>-M</code> a motor.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Improve a marginal voltage-drop run</summary>
+        <div class="ex-body">
+          <p>Using the same 10A, 20m run from the earlier exercise, how much does upsizing to 4mm&sup2; copper improve the voltage drop, and is it now acceptable?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            At 4mm&sup2;: <code>Vdrop &asymp; 1.68V &asymp; 7.0%</code> &mdash; better, but still above a conservative 5% guideline for sensitive circuitry; depending on the specific device's tolerance, 6mm&sup2; (roughly 4.2% at this current/length) might be the safer choice. Confirm both in the calculator above.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Decide on cable routing in a mixed panel</summary>
+        <div class="ex-body">
+          <p>A panel contains a VFD driving a pump motor, and separately a Modbus RTU relay board wired to an ESP32 gateway (per the worked panel example above). The motor power cable and the Modbus RS-485 cable both need to run the same general direction across the panel. How should they be routed, and why?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            In <strong>separate wire ducts</strong>, with physical separation where they run parallel, crossing at 90&deg; only if a crossing is unavoidable. The VFD's fast PWM switching radiates significant EMI (covered in the VFD tutorial's cable-effects section); bundling it with the low-voltage RS-485 signal wiring risks coupling that noise directly into the Modbus communication, causing intermittent, hard-to-diagnose communication errors.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  function num(id){ var v = document.getElementById(id).value.trim(); return v === '' ? null : parseFloat(v); }
+
+  // ---------- Wire colour reference ----------
+  var COLORS = {
+    nec: [
+      ['Line 1 / Phase A', '#111', 'Black'],
+      ['Line 2 / Phase B', '#c0392b', 'Red'],
+      ['Line 3 / Phase C', '#2563a8', 'Blue'],
+      ['Neutral', '#eee', 'White/Grey'],
+      ['Ground', '#1e8449', 'Green (or bare)']
+    ],
+    iec: [
+      ['Line 1 (L1)', '#7a4a2a', 'Brown'],
+      ['Line 2 (L2)', '#111', 'Black'],
+      ['Line 3 (L3)', '#888', 'Grey'],
+      ['Neutral (N)', '#2563a8', 'Blue'],
+      ['Protective Earth (PE)', 'linear-gradient(90deg,#1e8449 50%,#e6c200 50%)', 'Green/Yellow']
+    ]
+  };
+  function renderColors(){
+    var std = document.getElementById('wc-standard').value;
+    var rows = COLORS[std];
+    var html = '<table style="margin-top:14px;"><thead><tr><th>Conductor</th><th>Colour</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      html += '<tr><td>'+r[0]+'</td><td><span class="swatch-dot" style="background:'+r[1]+'"></span>'+r[2]+'</td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('wc-output').innerHTML = html;
+  }
+  document.getElementById('wc-standard').addEventListener('change', renderColors);
+  renderColors();
+
+  // ---------- NEMA/IP ----------
+  var NEMA_IP = {
+    '1': { ip: 'IP10 (approx.)', note: 'Indoor, general purpose. No specific protection against dust or water beyond basic touch protection.' },
+    '12': { ip: 'IP52 (approx.)', note: 'Indoor, protects against dust and dripping/light splashing water. Common for standard indoor industrial panels.' },
+    '4': { ip: 'IP55/IP66-ish (approx., commonly cited near IP66 in practice)', note: 'Indoor/outdoor, protects against hose-directed water and dust.' },
+    '4X': { ip: 'IP66 (approx., widely cited)', note: 'As NEMA 4, plus corrosion-resistant construction — the standard choice for washdown or outdoor corrosive environments.' },
+    '6P': { ip: 'IP67/IP68-ish (approx.)', note: 'Protects against prolonged submersion at a specified depth, plus corrosion resistance.' }
+  };
+  document.getElementById('nema-select').addEventListener('change', renderNema);
+  function renderNema(){
+    var v = document.getElementById('nema-select').value;
+    var info = NEMA_IP[v];
+    document.getElementById('nema-output').innerHTML =
+      '<div class="result-card" style="margin-top:14px;max-width:460px;"><div class="r-label">Approx. IP equivalent</div><div class="r-value">' + info.ip + '</div>' +
+      '<div style="margin-top:8px;font-size:.85rem;color:var(--muted);font-family:\'IBM Plex Sans\',sans-serif;">' + info.note + '</div></div>';
+  }
+  renderNema();
+
+  // ---------- Wire numbering ----------
+  document.getElementById('wn-gen').addEventListener('click', function(){
+    var start = parseInt(document.getElementById('wn-start').value,10);
+    var count = parseInt(document.getElementById('wn-count').value,10);
+    var prefix = document.getElementById('wn-prefix').value.trim();
+    if (isNaN(start) || isNaN(count) || count<1 || count>200){ document.getElementById('wn-output').innerHTML = '<p class="tool-error">Enter a valid start and count (1-200).</p>'; return; }
+    var nums = [];
+    for (var i=0;i<count;i++){ nums.push(prefix + (start+i)); }
+    document.getElementById('wn-output').innerHTML = '<pre>' + nums.join(', ') + '</pre>';
+  });
+
+  // ---------- Voltage drop ----------
+  var RHO_CU = 1.68e-8;
+  document.getElementById('vd-calc').addEventListener('click', function(){
+    var current = num('vd-current'), length = num('vd-length'), supply = num('vd-supply');
+    var csa = parseFloat(document.getElementById('vd-csa').value);
+    if (current===null || length===null || supply===null || supply<=0) return;
+    var A = csa*1e-6;
+    var Rperm = RHO_CU/A;
+    var vdrop = 2*current*length*Rperm;
+    var pct = vdrop/supply*100;
+    var out = document.getElementById('vd-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Voltage drop</div><div class="r-value">' + vdrop.toPrecision(4).replace(/\.?0+$/,'') + ' V</div></div>' +
+      '<div class="result-card"><div class="r-label">% of supply</div><div class="r-value">' + pct.toFixed(2) + '%</div></div>' +
+      '<div class="result-card"><div class="r-label">Guideline (&lt;5%)</div><div class="r-value">' + (pct<5?'OK':'too high') + '</div></div>';
+  });
+
+  // ---------- In-page search ----------
+  var searchIndex = [];
+  document.querySelectorAll('section.topic[id]').forEach(function(sec){
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    searchIndex.push({ kind: 'Section', title: h2.textContent, id: sec.id, text: sec.textContent.toLowerCase() });
+  });
+  document.querySelectorAll('details.ex').forEach(function(ex, i){
+    var summary = ex.querySelector('summary');
+    var title = summary.textContent.replace(/^(Basic|Intermediate|Advanced)\s*/i, '').trim();
+    if (!ex.id) ex.id = 'ex-auto-' + i;
+    searchIndex.push({ kind: 'Exercise', title: title, id: ex.id, text: ex.textContent.toLowerCase(), isEx: true });
+  });
+
+  var input = document.getElementById('page-search-input');
+  var results = document.getElementById('page-search-results');
+
+  function renderResults(list){
+    if (list.length === 0){ results.innerHTML = '<div class="r-empty">No matches.</div>'; results.classList.add('open'); return; }
+    results.innerHTML = list.slice(0,12).map(function(r){
+      return '<a href="#' + r.id + '" data-id="' + r.id + '" data-ex="' + (r.isEx?'1':'0') + '"><span class="r-kind">' + r.kind + '</span>' + r.title + '</a>';
+    }).join('');
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', function(){
+    var q = input.value.trim().toLowerCase();
+    if (!q){ results.classList.remove('open'); return; }
+    var matches = searchIndex.filter(function(item){ return item.text.indexOf(q) !== -1; });
+    renderResults(matches);
+  });
+
+  results.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if (!a) return;
+    var isEx = a.dataset.ex === '1';
+    if (isEx){
+      e.preventDefault();
+      var id = a.dataset.id;
+      var el = document.getElementById(id);
+      if (el){
+        el.open = true;
+        setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); }, 30);
+      }
+      results.classList.remove('open');
+      input.value = '';
+    } else {
+      results.classList.remove('open');
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!results.contains(e.target) && e.target !== input){ results.classList.remove('open'); }
+  });
+})();
+</script>
