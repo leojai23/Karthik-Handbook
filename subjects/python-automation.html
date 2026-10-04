@@ -1,0 +1,852 @@
+<title>Python for Automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --core:#b3701f; --core-soft:#f6ead5; --core-ink:#7a4c12;
+    --field:#1f7a8c; --field-soft:#dcedf0; --field-ink:#145561;
+    --code-bg:#121b24; --code-fg:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --core:#e0a04a; --core-soft:#332410; --core-ink:#f2cd94;
+      --field:#4fc0d4; --field-soft:#0f2b30; --field-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-fg:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --core:#e0a04a; --core-soft:#332410; --core-ink:#f2cd94;
+    --field:#4fc0d4; --field-soft:#0f2b30; --field-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-fg:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .sub{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+
+  .nav-search{position:relative;margin:4px 8px 6px;}
+  .nav-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .nav-search input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.85rem;padding:8px 10px 8px 32px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .nav-search input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .nav-search-results{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:360px;overflow-y:auto;z-index:50;display:none;
+  }
+  .nav-search-results.open{display:block;}
+  .nav-search-results a{
+    display:block;padding:9px 12px;text-decoration:none;color:var(--ink);font-size:.84rem;border-bottom:1px solid var(--line-soft);
+  }
+  .nav-search-results a:last-child{border-bottom:none;}
+  .nav-search-results a:hover, .nav-search-results a.sel{background:var(--line-soft);}
+  .nav-search-results .r-kind{
+    font-family:"IBM Plex Mono",monospace;font-size:.65rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:2px;
+  }
+  .nav-search-results .r-empty{padding:14px 12px;color:var(--muted);font-size:.83rem;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.core-link{border-left:3px solid var(--core);padding-left:9px;}
+  nav.side a.field-link{border-left:3px solid var(--field);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner .n{font-size:1.1rem;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .domain-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .domain-box.core{border-left-color:var(--core);}
+  .domain-box.field{border-left-color:var(--field);}
+  .domain-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .domain-box.core .tag{background:var(--core-soft);color:var(--core-ink);}
+  .domain-box.field .tag{background:var(--field-soft);color:var(--field-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-fg);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .diagram{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .diagram svg{width:100%;height:auto;display:block;}
+  .diagram figcaption{margin-top:10px;color:var(--muted);font-size:.86rem;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-output{margin-top:18px;}
+  .tool-error{color:var(--warn);font-size:.85rem;margin-top:8px;font-family:"IBM Plex Mono",monospace;}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;}
+  .result-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .result-card .r-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .result-card .r-value{font-family:"IBM Plex Mono",monospace;font-size:1.15rem;font-weight:600;margin-top:4px;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">Python for Automation<span class="sub">Basic &rarr; Advanced</span></p>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="page-search-input" placeholder="Search this page..." autocomplete="off">
+      <div class="nav-search-results" id="page-search-results"></div>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#backoff-tool">Exponential Backoff Calculator</a>
+      <a href="#retry-tool">Worst-Case Retry Timeout</a>
+      <a href="#struct-tool">Struct Format Code Builder</a>
+      <a href="#budget-tool">Polling Loop Cycle Budget</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a class="core-link" href="#why-python">Why Python for Automation</a>
+      <a class="field-link" href="#serial-pyserial">Talking to Serial Ports: pyserial</a>
+      <a class="field-link" href="#sockets-tcp">Talking to Sockets: TCP Clients</a>
+      <a class="core-link" href="#struct-module">Packing &amp; Unpacking Binary Data</a>
+      <a class="core-link" href="#venv-deps">Virtual Environments &amp; Dependencies</a>
+      <a class="core-link" href="#logging-not-print">Logging Instead of print()</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="field-link" href="#polling-loop">Structuring a Polling Loop</a>
+      <a class="field-link" href="#error-handling">Error Handling for Flaky Devices</a>
+      <a class="field-link" href="#timeouts-retries">Timeouts &amp; Retries with Backoff</a>
+      <a class="core-link" href="#config-files">Configuration Files</a>
+      <a class="core-link" href="#csv-sqlite">Logging to CSV &amp; SQLite</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced</p>
+      <a class="core-link" href="#threading">Concurrency: Threading for Parallel Polling</a>
+      <a class="core-link" href="#asyncio">Asyncio as an Alternative</a>
+      <a class="field-link" href="#long-running-service">A Long-Running Service</a>
+      <a class="core-link" href="#testing-without-hardware">Testing Without the Hardware</a>
+      <a class="core-link" href="#packaging-module">Packaging a Reusable Module</a>
+      <a class="field-link" href="#resilient-poller">A Resilient Multi-Protocol Poller</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Automation Scripting Reference</p>
+      <h1>Python for Automation</h1>
+      <p class="lede">A guided path from opening a serial port through structuring a resilient polling loop, into concurrency, testing, and packaging &mdash; consolidating the Python patterns already running through the Modbus, Raspberry Pi, and ESP32 tutorials into one proper reference. Copper-tagged sections are core Python/stdlib; teal-tagged sections are field-communication specific.</p>
+    </header>
+
+    <!-- ============ TOOLS ============ -->
+
+    <section class="topic" id="backoff-tool">
+      <h2>Exponential Backoff Calculator</h2>
+      <p><code>delay = min(cap, base &times; 2<sup>attempt</sup>)</code> &mdash; the standard formula for spacing out retries so a struggling device isn't hammered with requests.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="bo-attempt">Attempt number (0-indexed)</label>
+            <input type="text" id="bo-attempt" value="3">
+          </div>
+          <div class="tool-field">
+            <label for="bo-base">Base delay, s</label>
+            <input type="text" id="bo-base" value="0.5">
+          </div>
+          <div class="tool-field">
+            <label for="bo-cap">Cap, s</label>
+            <input type="text" id="bo-cap" value="8">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="bo-calc">Calculate</button>
+        <div class="result-grid" id="bo-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="retry-tool">
+      <h2>Worst-Case Retry Timeout</h2>
+      <p>How long before giving up entirely, across all attempts and the backoff delays between them.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="rt-attempts">Number of attempts</label>
+            <input type="text" id="rt-attempts" value="5">
+          </div>
+          <div class="tool-field">
+            <label for="rt-timeout">Timeout per attempt, s</label>
+            <input type="text" id="rt-timeout" value="2">
+          </div>
+          <div class="tool-field">
+            <label for="rt-base">Backoff base, s</label>
+            <input type="text" id="rt-base" value="0.5">
+          </div>
+          <div class="tool-field">
+            <label for="rt-cap">Backoff cap, s</label>
+            <input type="text" id="rt-cap" value="8">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="rt-calc">Calculate</button>
+        <div class="result-grid" id="rt-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="struct-tool">
+      <h2>Struct Format Code Builder</h2>
+      <p>Pick a byte order and data type to get the Python <code>struct</code> format string and its byte length &mdash; the same byte-order concepts from the Electronics &amp; Instrumentation tutorial's endianness section, expressed as actual code.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="st-order">Byte order</label>
+            <select id="st-order">
+              <option value=">">&gt; Big-endian</option>
+              <option value="<">&lt; Little-endian</option>
+              <option value="!">! Network (= big-endian)</option>
+            </select>
+          </div>
+          <div class="tool-field">
+            <label for="st-type">Data type</label>
+            <select id="st-type">
+              <option value="H">H &mdash; unsigned 16-bit</option>
+              <option value="h">h &mdash; signed 16-bit</option>
+              <option value="I">I &mdash; unsigned 32-bit</option>
+              <option value="i">i &mdash; signed 32-bit</option>
+              <option value="f" selected>f &mdash; 32-bit float</option>
+              <option value="d">d &mdash; 64-bit double</option>
+            </select>
+          </div>
+        </div>
+        <div class="tool-output" id="st-output"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="budget-tool">
+      <h2>Polling Loop Cycle Budget</h2>
+      <p>Check whether a given number of devices, each taking some time to poll, actually fits inside your desired cycle time.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="pb-devices">Number of devices</label>
+            <input type="text" id="pb-devices" value="20">
+          </div>
+          <div class="tool-field">
+            <label for="pb-time">Time per device, ms</label>
+            <input type="text" id="pb-time" value="50">
+          </div>
+          <div class="tool-field">
+            <label for="pb-cycle">Desired cycle time, s</label>
+            <input type="text" id="pb-cycle" value="1">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="pb-calc">Calculate</button>
+        <div class="result-grid" id="pb-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="why-python">
+      <h2>Why Python for Automation</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <p>Python shows up throughout this Handbook's worked examples &mdash; the Modbus tutorial's RTU master, the Raspberry Pi tutorial's GPIO and Modbus-polling code, the ESP32 tutorial's gateway concept &mdash; for the same reasons it dominates automation scripting generally: readable enough that a quick field script stays maintainable, an enormous standard library (serial ports, sockets, binary parsing, all built in or one <code>pip install</code> away), and a vast ecosystem of protocol-specific libraries (<code>pymodbus</code>, <code>paho-mqtt</code>, <code>opcua</code>) that mean the hard protocol work rarely needs reinventing from scratch.</p>
+    </section>
+
+    <section class="topic" id="serial-pyserial">
+      <h2>Talking to Serial Ports: pyserial</h2>
+      <div class="domain-box field"><span class="tag">Field</span></div>
+      <p>The <code>pyserial</code> library (<code>import serial</code>) is the standard way to open an RS-485/RS-232 connection &mdash; exactly the pattern already used in the Modbus and Raspberry Pi tutorials:</p>
+      <pre>import serial
+
+ser = serial.Serial(
+    port="/dev/ttyUSB0",   # or "COM5" on Windows
+    baudrate=9600,
+    bytesize=8, parity="N", stopbits=1,
+    timeout=0.5             # read() returns after this many seconds even with no data
+)
+ser.write(bytes.fromhex("01 03 00 00 00 02"))
+response = ser.read(9)      # read up to 9 bytes, or until timeout
+ser.close()</pre>
+      <p>The <code>timeout</code> parameter matters enormously: without it, <code>read()</code> blocks forever waiting for bytes that may never arrive from a disconnected or unresponsive device &mdash; exactly the scenario the Timeouts &amp; Retries section below is built to handle gracefully instead of hanging the whole program.</p>
+    </section>
+
+    <section class="topic" id="sockets-tcp">
+      <h2>Talking to Sockets: TCP Clients</h2>
+      <div class="domain-box field"><span class="tag">Field</span></div>
+      <p>For Modbus TCP, OPC UA, or any other Ethernet-based protocol, Python's built-in <code>socket</code> module is the equivalent of <code>pyserial</code> for the network:</p>
+      <pre>import socket
+
+sock = socket.create_connection(("192.168.1.50", 502), timeout=2.0)
+sock.sendall(bytes.fromhex("00 01 00 00 00 06 01 03 00 00 00 02"))
+response = sock.recv(256)
+sock.close()</pre>
+      <p>Most real projects reach for a dedicated library (<code>pymodbus</code> for Modbus, for instance) rather than hand-rolling frames like this &mdash; but understanding what's happening underneath, at the raw socket level, is exactly what makes debugging a misbehaving library call tractable instead of mysterious.</p>
+    </section>
+
+    <section class="topic" id="struct-module">
+      <h2>Packing &amp; Unpacking Binary Data</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <p>Field protocols speak raw bytes; Python code wants numbers. The <code>struct</code> module bridges the two, with a format string encoding both byte order and data type &mdash; the exact same ABCD/DCBA byte-order concepts from the Electronics &amp; Instrumentation tutorial's endianness section, expressed directly as code:</p>
+      <pre>import struct
+
+# Two Modbus holding registers (big-endian byte order, "ABCD" register order)
+# containing the IEEE-754 bit pattern for pi: 0x4049, 0x0FDB
+raw = struct.pack('&gt;HH', 0x4049, 0x0FDB)
+value = struct.unpack('&gt;f', raw)[0]
+print(value)   # 3.1415927410125732</pre>
+      <p>The leading character sets byte order (<code>&gt;</code> big-endian, <code>&lt;</code> little-endian), and the following letters set the type (<code>H</code> unsigned 16-bit, <code>f</code> 32-bit float, and so on). Get the byte order wrong and the number decodes to nonsense without any error at all &mdash; exactly the class of bug the Modbus tutorial's endianness section warns about, and exactly why this deserves deliberate attention rather than guessing. Try different combinations in the Struct Format Code Builder above.</p>
+    </section>
+
+    <section class="topic" id="venv-deps">
+      <h2>Virtual Environments &amp; Dependencies</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <pre>python3 -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install pyserial pymodbus paho-mqtt
+pip freeze &gt; requirements.txt</pre>
+      <p>A virtual environment keeps one project's library versions isolated from every other project (and from the system Python) &mdash; essential once more than one automation script lives on the same machine, since two projects wanting different versions of the same library is a question of when, not if. <code>requirements.txt</code> records exactly what's needed, so a deployment to a new Raspberry Pi or gateway device is <code>pip install -r requirements.txt</code>, not a guessing game.</p>
+    </section>
+
+    <section class="topic" id="logging-not-print">
+      <h2>Logging Instead of print()</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <pre>import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    filename="poller.log"
+)
+
+logging.info("Connected to device at 192.168.1.50")
+logging.warning("Device 3 timed out, retrying")
+logging.error("Device 7 unreachable after 5 attempts")</pre>
+      <p><code>print()</code> output vanishes the moment a terminal closes, carries no timestamp, and has no concept of severity. For anything meant to run unattended &mdash; the systemd services covered in the Raspberry Pi tutorial, or any long-running poller &mdash; <code>logging</code> gives timestamped, severity-leveled, file-persisted output essentially for free, which is exactly what's needed to answer "what happened at 3am when nobody was watching" after the fact.</p>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+
+    <div class="level-banner intermediate"><span class="n">&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="polling-loop">
+      <h2>Structuring a Polling Loop</h2>
+      <div class="domain-box field"><span class="tag">Field</span></div>
+      <p>Every Modbus master, MQTT publisher, and sensor logger in this Handbook ultimately boils down to the same shape:</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 420 340" role="img" aria-label="Polling loop structure: for each device in the list, attempt to read it; on success, process and log the value; on failure, log the error and continue to the next device rather than stopping; after all devices are polled, sleep for whatever time remains to hit the target cycle time, then repeat from the start.">
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor">
+            <rect x="130" y="15" width="160" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="210" y="40" text-anchor="middle">for device in devices:</text>
+
+            <line x1="210" y1="55" x2="210" y2="80" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="210,80 206,72 214,72" fill="currentColor"/>
+            <rect x="110" y="82" width="200" height="40" rx="6" fill="none" stroke="var(--field)" stroke-width="1.6"/>
+            <text x="210" y="107" text-anchor="middle" fill="var(--field)">try: read(device)</text>
+
+            <line x1="110" y1="102" x2="20" y2="155" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="20,155 25,146 29,153" fill="currentColor"/>
+            <rect x="0" y="157" width="150" height="40" rx="6" fill="none" stroke="var(--good)" stroke-width="1.6"/>
+            <text x="75" y="182" text-anchor="middle" fill="var(--good)" font-size="10">success &rarr; log/publish</text>
+
+            <line x1="310" y1="102" x2="370" y2="155" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="370,155 362,150 368,144" fill="currentColor"/>
+            <rect x="290" y="157" width="130" height="40" rx="6" fill="none" stroke="var(--warn)" stroke-width="1.6"/>
+            <text x="355" y="177" text-anchor="middle" fill="var(--warn)" font-size="10">failure &rarr; log,</text>
+            <text x="355" y="190" text-anchor="middle" fill="var(--warn)" font-size="10">continue loop</text>
+
+            <line x1="75" y1="197" x2="210" y2="235" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="355" y1="197" x2="210" y2="235" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="130" y="237" width="160" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="210" y="260" text-anchor="middle" font-size="10">next device / sleep to</text>
+
+            <path d="M 290 256 Q 390 256 390 140 Q 390 30 292 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3,3" marker-end="url(#pyarrow)"/>
+            <text x="350" y="100" font-size="9" transform="rotate(-90 350 100)">repeat</text>
+
+            <defs>
+              <marker id="pyarrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+                <polygon points="0,0 7,3.5 0,7" fill="currentColor"/>
+              </marker>
+            </defs>
+          </g>
+        </svg>
+        <figcaption>The critical design choice is right in the middle: one device's failure is caught, logged, and the loop moves on &mdash; it never stops the whole poller. The next section covers exactly how to catch failures narrowly enough to do this safely.</figcaption>
+      </figure>
+      <pre>import time
+
+def poll_all(devices):
+    for device in devices:
+        try:
+            value = read_device(device)
+            handle_value(device, value)
+        except DeviceError as e:
+            logging.warning(f"{device.name} failed: {e}")
+            continue   # move on — one bad device shouldn't stop the rest
+
+while True:
+    start = time.monotonic()
+    poll_all(devices)
+    elapsed = time.monotonic() - start
+    time.sleep(max(0, CYCLE_TIME - elapsed))</pre>
+      <p><code>time.monotonic()</code>, not <code>time.time()</code>, is the right clock for measuring elapsed time &mdash; it can't jump backward if the system clock gets adjusted (NTP sync, manual change), where <code>time.time()</code> can.</p>
+    </section>
+
+    <section class="topic" id="error-handling">
+      <h2>Error Handling for Flaky Devices</h2>
+      <div class="domain-box field"><span class="tag">Field</span></div>
+      <p>Field devices fail in mundane, expected ways: a timeout, a dropped connection, a malformed response from electrical noise on the line. The discipline that matters is catching <em>specific</em> exceptions, not reaching for a bare <code>except:</code>:</p>
+      <pre>try:
+    response = ser.read(expected_length)
+    if len(response) != expected_length:
+        raise TimeoutError("short read — device didn't respond in time")
+    value = decode(response)
+except (serial.SerialException, TimeoutError) as e:
+    logging.warning(f"Device {addr}: {e}")
+    continue
+# a genuine bug (e.g. a TypeError from bad code) is NOT caught here,
+# and will surface loudly instead of being silently swallowed</pre>
+      <p>A bare <code>except:</code> catches <em>everything</em> &mdash; including a real bug in your own code, a <code>KeyboardInterrupt</code> from someone trying to stop the script, even a memory error &mdash; and silently continuing past any of those hides problems rather than solving them. Catch the specific, expected failure modes of the I/O you're doing; let anything else propagate and be seen.</p>
+    </section>
+
+    <section class="topic" id="timeouts-retries">
+      <h2>Timeouts &amp; Retries with Backoff</h2>
+      <div class="domain-box field"><span class="tag">Field</span></div>
+      <p>A single retry immediately after a failure often just repeats the same failure (the device is still busy, the noise burst hasn't passed). <strong>Exponential backoff</strong> spaces retries out, giving a struggling device time to recover:</p>
+      <pre>def read_with_retry(device, max_attempts=5, base=0.5, cap=8.0):
+    for attempt in range(max_attempts):
+        try:
+            return read_device(device)
+        except DeviceError as e:
+            if attempt == max_attempts - 1:
+                raise
+            delay = min(cap, base * (2 ** attempt))
+            logging.warning(f"{device.name} attempt {attempt+1} failed, retrying in {delay}s")
+            time.sleep(delay)</pre>
+      <p><strong>Worked example:</strong> attempt index 3 with base=0.5s, cap=8s gives <code>min(8, 0.5 &times; 2&sup3;) = 4.0s</code>. Across 5 full attempts at 2s timeout each, the worst-case total time before giving up is <code>5&times;2 + (0.5+1+2+4) = 17.5s</code> &mdash; confirm both in the calculators above, and size your overall polling cycle time with that worst case in mind, not just the happy-path timing.</p>
+    </section>
+
+    <section class="topic" id="config-files">
+      <h2>Configuration Files</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <pre>// devices.json
+[
+  {"name": "Tank 3 Level", "address": 3, "register": 0, "unit": "L"},
+  {"name": "Relay Board A", "address": 2, "register": 1, "unit": null}
+]</pre>
+      <pre>import json
+with open("devices.json") as f:
+    devices = json.load(f)</pre>
+      <p>Keeping the device list &mdash; addresses, register maps, units &mdash; in a JSON (or YAML) file rather than hardcoded in the script means adding or re-addressing a field device is a config edit, not a code change and redeploy. This is exactly the kind of data the Modbus tutorial's register-map tables and the Control Panel Design tutorial's as-built documentation both describe conceptually; a config file is where that documentation becomes something the running code actually reads.</p>
+    </section>
+
+    <section class="topic" id="csv-sqlite">
+      <h2>Logging to CSV &amp; SQLite</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <p>Expanding on the data-logging pattern from the Raspberry Pi tutorial: a plain CSV file (via the built-in <code>csv</code> module) is the simplest option, perfectly fine for a single stream of readings opened later in a spreadsheet. SQLite (via the built-in <code>sqlite3</code> module &mdash; no separate database server needed) scales better once there's more than one device, concurrent writes, or a need to query by time range rather than just appending:</p>
+      <pre>import sqlite3
+conn = sqlite3.connect("readings.db")
+conn.execute("""CREATE TABLE IF NOT EXISTS readings
+    (ts REAL, device TEXT, value REAL)""")
+conn.execute("INSERT INTO readings VALUES (?, ?, ?)",
+             (time.time(), "Tank 3 Level", 289.35))
+conn.commit()</pre>
+    </section>
+
+    <!-- ============ ADVANCED ============ -->
+
+    <div class="level-banner advanced"><span class="n">&#9679;</span> Advanced</div>
+
+    <section class="topic" id="threading">
+      <h2>Concurrency: Threading for Parallel Polling</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <p>The sequential polling loop above has a real cost: if device 3 of 20 takes its full timeout to fail, every device after it waits. Python's Global Interpreter Lock (GIL) prevents true CPU-level parallelism, but it's released during I/O waits &mdash; exactly what reading a serial port or socket mostly is &mdash; so threading still meaningfully helps throughput for I/O-bound polling like this:</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 560 180" role="img" aria-label="Single threaded polling versus threaded polling: in single threaded mode, one unresponsive device blocks every device after it in the list until its timeout expires; in threaded mode, each device is polled on its own thread, so one slow or unresponsive device only delays that one thread while the others complete independently.">
+          <g font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">
+            <text x="140" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="var(--warn)">Single-threaded</text>
+            <rect x="20" y="30" width="60" height="26" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.3"/>
+            <text x="50" y="47" text-anchor="middle" font-size="9">dev 1</text>
+            <rect x="80" y="30" width="60" height="26" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.3"/>
+            <text x="110" y="47" text-anchor="middle" font-size="9">dev 2</text>
+            <rect x="140" y="30" width="110" height="26" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.6"/>
+            <text x="195" y="47" text-anchor="middle" font-size="9">dev 3 (timeout&hellip;)</text>
+            <rect x="250" y="30" width="60" height="26" fill="var(--line-soft)" stroke="var(--line)" stroke-width="1.3"/>
+            <text x="280" y="47" text-anchor="middle" font-size="9">waiting</text>
+            <text x="140" y="75" text-anchor="middle" font-size="9">every device after dev 3 is delayed by its full timeout</text>
+
+            <text x="420" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="var(--good)">Threaded</text>
+            <rect x="330" y="95" width="60" height="24" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.3"/>
+            <text x="360" y="111" text-anchor="middle" font-size="9">dev 1 &#10003;</text>
+            <rect x="330" y="124" width="60" height="24" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.3"/>
+            <text x="360" y="140" text-anchor="middle" font-size="9">dev 2 &#10003;</text>
+            <rect x="400" y="95" width="110" height="24" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.6"/>
+            <text x="455" y="111" text-anchor="middle" font-size="9">dev 3 (timeout&hellip;)</text>
+            <text x="455" y="160" text-anchor="middle" font-size="9">dev 1 &amp; 2 finish independently, unaffected</text>
+          </g>
+        </svg>
+        <figcaption>A thread pool (<code>concurrent.futures.ThreadPoolExecutor</code>) is the simplest way in: submit each device's read as a job, and one slow device only delays its own thread, not the whole batch.</figcaption>
+      </figure>
+      <pre>from concurrent.futures import ThreadPoolExecutor
+
+def poll_all_threaded(devices, max_workers=10):
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        results = pool.map(read_with_retry, devices)
+    return list(results)</pre>
+    </section>
+
+    <section class="topic" id="asyncio">
+      <h2>Asyncio as an Alternative</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <p><code>asyncio</code> achieves a similar goal &mdash; many I/O operations in flight at once &mdash; through cooperative coroutines instead of OS threads, which scales to far more concurrent connections with lower overhead, at the cost of needing every library in the call chain to be async-aware (a blocking <code>pyserial</code> call inside an async function stalls the entire event loop, defeating the purpose). Threading is usually the simpler starting point for a modest number of devices (tens); asyncio pays off more clearly at larger scale (hundreds of connections) where thread overhead itself becomes the bottleneck &mdash; async-native libraries exist for both Modbus and MQTT if that scale is genuinely needed.</p>
+    </section>
+
+    <section class="topic" id="long-running-service">
+      <h2>A Long-Running Service</h2>
+      <div class="domain-box field"><span class="tag">Field</span></div>
+      <p>Pairs directly with the Raspberry Pi tutorial's systemd section: the Python side needs to shut down cleanly when systemd sends a stop signal, rather than being killed mid-write:</p>
+      <pre>import signal
+
+running = True
+def handle_stop(signum, frame):
+    global running
+    running = False
+
+signal.signal(signal.SIGTERM, handle_stop)
+
+while running:
+    poll_all(devices)
+    time.sleep(1)
+
+logging.info("Shutting down cleanly")
+cleanup()  # close ports, flush logs, etc.</pre>
+    </section>
+
+    <section class="topic" id="testing-without-hardware">
+      <h2>Testing Without the Hardware</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <p>A polling script is hard to test if every test run needs the real field device plugged in. Two common approaches: mock the serial/socket object entirely (Python's built-in <code>unittest.mock</code> can stand in for <code>serial.Serial</code>, returning canned byte responses to verify the decoding logic in isolation), or run against a software simulator (a Modbus slave simulator listening on a local port, standing in for the real device) for more realistic end-to-end testing. Either approach lets the decoding and error-handling logic &mdash; the parts most likely to have subtle bugs &mdash; be verified automatically and repeatedly, the same discipline behind every verified worked example throughout this Handbook, just automated.</p>
+    </section>
+
+    <section class="topic" id="packaging-module">
+      <h2>Packaging a Reusable Module</h2>
+      <div class="domain-box core"><span class="tag">Core</span></div>
+      <p>Once the same Modbus-read-with-retry or MQTT-publish helper gets copy-pasted into a third project, it's time to extract it into its own small importable module (a single <code>.py</code> file, or a proper package with a <code>pyproject.toml</code> once it's substantial) rather than maintaining three divergent copies. This is the same DRY principle behind any software project, applied to the field-communication helpers this tutorial has built up &mdash; a <code>field_io.py</code> with the retry/backoff/logging logic once, imported everywhere it's needed.</p>
+    </section>
+
+    <section class="topic" id="resilient-poller">
+      <h2>A Resilient Multi-Protocol Poller</h2>
+      <div class="domain-box field"><span class="tag">Field</span></div>
+      <p>Pulling every piece of this tutorial together into the shape a real deployment takes: a threaded pool polls several Modbus RTU devices on a schedule, each read wrapped in retry-with-backoff and narrow exception handling; successful readings are logged to SQLite and published to an MQTT broker (the ESP32 &amp; IoT tutorial's pattern, here running on a Pi or small PC instead of a microcontroller); device addresses and register maps live in a JSON config file, not hardcoded; the whole thing runs as a systemd service with clean signal-handling shutdown; and the decode logic has unit tests that run with no hardware attached at all. No single piece here is exotic &mdash; the skill is in applying all of them together, consistently, the same conclusion the Control Panel Design tutorial's worked example reached from the hardware side.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+
+    <div class="level-banner basic" id="practice-exercises" style="margin-top:56px;"><span class="n">&#9679;</span> Practice Exercises</div>
+
+    <section class="topic">
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Decode a float from two Modbus registers</summary>
+        <div class="ex-body">
+          <p>Two big-endian holding registers contain <code>0x4049</code> and <code>0x0FDB</code>. Using <code>struct</code>, what Python code decodes these as a 32-bit float, and what value results?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <pre>raw = struct.pack('&gt;HH', 0x4049, 0x0FDB)
+value = struct.unpack('&gt;f', raw)[0]  # 3.1415927...</pre>
+            This is the IEEE-754 bit pattern for &pi; &mdash; the same value verified in the Electronics &amp; Instrumentation tutorial's register decoder example.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Compute a backoff delay</summary>
+        <div class="ex-body">
+          <p>Using <code>delay = min(cap, base &times; 2<sup>attempt</sup>)</code> with base=0.5s and cap=8s, what's the delay for attempt index 3?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>min(8, 0.5 &times; 2&sup3;) = min(8, 4.0) = 4.0s</code>.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Compute a worst-case retry timeout</summary>
+        <div class="ex-body">
+          <p>A read is attempted up to 5 times, 2s timeout each, with exponential backoff (base=0.5s, cap=8s) between attempts. What's the worst-case total time before giving up?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            5 timeouts: <code>5 &times; 2 = 10s</code>. Plus 4 backoff delays between attempts: <code>0.5+1+2+4 = 7.5s</code>. Total: <code>17.5s</code>.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Check whether a polling cycle fits its budget</summary>
+        <div class="ex-body">
+          <p>20 devices, each taking 50ms to poll, need to fit inside a 1-second cycle. Does it fit, and what's the achieved rate?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>20 &times; 0.05 = 1.0s</code> &mdash; exactly fits, with zero slack. Achieved rate: <code>1/1.0 = 1.0Hz</code>. In practice this is a risky fit with no margin for a single retry; either fewer devices, faster per-device timeouts, or threading (see Advanced) would give real headroom.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Diagnose an overloaded polling cycle</summary>
+        <div class="ex-body">
+          <p>The same 1-second cycle now needs to cover 50 devices at 50ms each. Does it fit, and what are two ways to fix it?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>50 &times; 0.05 = 2.5s</code> &mdash; well over the 1s budget; the actual cycle would run at 0.4Hz, less than half the desired rate. Fixes: poll devices concurrently with a thread pool (Advanced section above) so the 2.5s of work overlaps instead of stacking sequentially, or relax the desired cycle time to something the sequential approach can actually sustain.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Explain why bare except: is dangerous in a polling loop</summary>
+        <div class="ex-body">
+          <p>A polling loop wraps each device read in <code>try: ... except: continue</code> (a bare except with no exception type). What's the risk, and what should it catch instead?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            A bare <code>except:</code> catches <em>everything</em>, including real bugs in the decoding code (a <code>TypeError</code> or <code>IndexError</code> from malformed data), <code>KeyboardInterrupt</code> from an operator trying to stop the script, and system-level exceptions &mdash; all silently swallowed and the loop just continues, hiding problems that should have been visible. It should instead catch only the specific, expected I/O failure types (e.g. <code>serial.SerialException</code>, a custom <code>TimeoutError</code>), letting anything else propagate and be seen.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  function num(id){ var v = document.getElementById(id).value.trim(); return v === '' ? null : parseFloat(v); }
+
+  // ---------- Backoff ----------
+  function backoff(attempt, base, cap){ return Math.min(cap, base * Math.pow(2, attempt)); }
+  document.getElementById('bo-calc').addEventListener('click', function(){
+    var attempt = num('bo-attempt'), base = num('bo-base'), cap = num('bo-cap');
+    if (attempt===null || base===null || cap===null) return;
+    var delay = backoff(attempt, base, cap);
+    var out = document.getElementById('bo-output');
+    out.style.display = 'grid';
+    out.innerHTML = '<div class="result-card"><div class="r-label">Delay</div><div class="r-value">' + delay.toPrecision(4).replace(/\.?0+$/,'') + ' s</div></div>';
+  });
+
+  // ---------- Retry worst case ----------
+  document.getElementById('rt-calc').addEventListener('click', function(){
+    var attempts = num('rt-attempts'), timeout = num('rt-timeout'), base = num('rt-base'), cap = num('rt-cap');
+    if ([attempts,timeout,base,cap].some(function(v){return v===null;}) || attempts<1) return;
+    var total = attempts*timeout;
+    for (var a=0; a<attempts-1; a++){ total += backoff(a, base, cap); }
+    var out = document.getElementById('rt-output');
+    out.style.display = 'grid';
+    out.innerHTML = '<div class="result-card"><div class="r-label">Worst-case total</div><div class="r-value">' + total.toPrecision(5).replace(/\.?0+$/,'') + ' s</div></div>';
+  });
+
+  // ---------- Struct builder ----------
+  var STRUCT_SIZES = { H:2, h:2, I:4, i:4, f:4, d:8 };
+  var STRUCT_NAMES = { H:'unsigned 16-bit', h:'signed 16-bit', I:'unsigned 32-bit', i:'signed 32-bit', f:'32-bit float', d:'64-bit double' };
+  function renderStruct(){
+    var order = document.getElementById('st-order').value;
+    var type = document.getElementById('st-type').value;
+    var fmt = order + type;
+    document.getElementById('st-output').innerHTML =
+      '<div class="result-card" style="margin-top:14px;"><div class="r-label">Format string</div><div class="r-value">\'' + fmt + '\'</div></div>' +
+      '<div class="result-card" style="margin-top:8px;"><div class="r-label">Size</div><div class="r-value">' + STRUCT_SIZES[type] + ' bytes (' + STRUCT_NAMES[type] + ')</div></div>';
+  }
+  document.getElementById('st-order').addEventListener('change', renderStruct);
+  document.getElementById('st-type').addEventListener('change', renderStruct);
+  renderStruct();
+
+  // ---------- Polling budget ----------
+  document.getElementById('pb-calc').addEventListener('click', function(){
+    var devices = num('pb-devices'), timeMs = num('pb-time'), cycle = num('pb-cycle');
+    if (devices===null || timeMs===null || cycle===null || cycle<=0) return;
+    var needed = devices*(timeMs/1000);
+    var hz = needed>0 ? 1/needed : Infinity;
+    var fits = needed<=cycle;
+    var out = document.getElementById('pb-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Actual cycle needed</div><div class="r-value">' + needed.toPrecision(4).replace(/\.?0+$/,'') + ' s</div></div>' +
+      '<div class="result-card"><div class="r-label">Achieved rate</div><div class="r-value">' + hz.toFixed(2) + ' Hz</div></div>' +
+      '<div class="result-card"><div class="r-label">Fits budget?</div><div class="r-value">' + (fits?'yes':'no — overloaded') + '</div></div>';
+  });
+
+  // ---------- In-page search ----------
+  var searchIndex = [];
+  document.querySelectorAll('section.topic[id]').forEach(function(sec){
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    searchIndex.push({ kind: 'Section', title: h2.textContent, id: sec.id, text: sec.textContent.toLowerCase() });
+  });
+  document.querySelectorAll('details.ex').forEach(function(ex, i){
+    var summary = ex.querySelector('summary');
+    var title = summary.textContent.replace(/^(Basic|Intermediate|Advanced)\s*/i, '').trim();
+    if (!ex.id) ex.id = 'ex-auto-' + i;
+    searchIndex.push({ kind: 'Exercise', title: title, id: ex.id, text: ex.textContent.toLowerCase(), isEx: true });
+  });
+
+  var input = document.getElementById('page-search-input');
+  var results = document.getElementById('page-search-results');
+
+  function renderResults(list){
+    if (list.length === 0){ results.innerHTML = '<div class="r-empty">No matches.</div>'; results.classList.add('open'); return; }
+    results.innerHTML = list.slice(0,12).map(function(r){
+      return '<a href="#' + r.id + '" data-id="' + r.id + '" data-ex="' + (r.isEx?'1':'0') + '"><span class="r-kind">' + r.kind + '</span>' + r.title + '</a>';
+    }).join('');
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', function(){
+    var q = input.value.trim().toLowerCase();
+    if (!q){ results.classList.remove('open'); return; }
+    var matches = searchIndex.filter(function(item){ return item.text.indexOf(q) !== -1; });
+    renderResults(matches);
+  });
+
+  results.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if (!a) return;
+    var isEx = a.dataset.ex === '1';
+    if (isEx){
+      e.preventDefault();
+      var id = a.dataset.id;
+      var el = document.getElementById(id);
+      if (el){
+        el.open = true;
+        setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); }, 30);
+      }
+      results.classList.remove('open');
+      input.value = '';
+    } else {
+      results.classList.remove('open');
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!results.contains(e.target) && e.target !== input){ results.classList.remove('open'); }
+  });
+})();
+</script>
