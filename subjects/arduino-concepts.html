@@ -1,0 +1,749 @@
+<title>Arduino Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --mcu:#b3701f; --mcu-soft:#f6ead5; --mcu-ink:#7a4c12;
+    --sketch:#1f7a8c; --sketch-soft:#dcedf0; --sketch-ink:#145561;
+    --code-bg:#121b24; --code-fg:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --mcu:#e0a04a; --mcu-soft:#332410; --mcu-ink:#f2cd94;
+      --sketch:#4fc0d4; --sketch-soft:#0f2b30; --sketch-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-fg:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --mcu:#e0a04a; --mcu-soft:#332410; --mcu-ink:#f2cd94;
+    --sketch:#4fc0d4; --sketch-soft:#0f2b30; --sketch-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-fg:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .sub{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+
+  .nav-search{position:relative;margin:4px 8px 6px;}
+  .nav-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .nav-search input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.85rem;padding:8px 10px 8px 32px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .nav-search input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .nav-search-results{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:360px;overflow-y:auto;z-index:50;display:none;
+  }
+  .nav-search-results.open{display:block;}
+  .nav-search-results a{
+    display:block;padding:9px 12px;text-decoration:none;color:var(--ink);font-size:.84rem;border-bottom:1px solid var(--line-soft);
+  }
+  .nav-search-results a:last-child{border-bottom:none;}
+  .nav-search-results a:hover, .nav-search-results a.sel{background:var(--line-soft);}
+  .nav-search-results .r-kind{
+    font-family:"IBM Plex Mono",monospace;font-size:.65rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:2px;
+  }
+  .nav-search-results .r-empty{padding:14px 12px;color:var(--muted);font-size:.83rem;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.mcu-link{border-left:3px solid var(--mcu);padding-left:9px;}
+  nav.side a.sketch-link{border-left:3px solid var(--sketch);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner .n{font-size:1.1rem;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .domain-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .domain-box.mcu{border-left-color:var(--mcu);}
+  .domain-box.sketch{border-left-color:var(--sketch);}
+  .domain-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .domain-box.mcu .tag{background:var(--mcu-soft);color:var(--mcu-ink);}
+  .domain-box.sketch .tag{background:var(--sketch-soft);color:var(--sketch-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-fg);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .diagram{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .diagram svg{width:100%;height:auto;display:block;}
+  .diagram figcaption{margin-top:10px;color:var(--muted);font-size:.86rem;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-output{margin-top:18px;}
+  .tool-error{color:var(--warn);font-size:.85rem;margin-top:8px;font-family:"IBM Plex Mono",monospace;}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;}
+  .result-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .result-card .r-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .result-card .r-value{font-family:"IBM Plex Mono",monospace;font-size:1.15rem;font-weight:600;margin-top:4px;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">Arduino Concepts<span class="sub">Basic &rarr; Advanced</span></p>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="page-search-input" placeholder="Search this page..." autocomplete="off">
+      <div class="nav-search-results" id="page-search-results"></div>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#led-tool">LED Resistor Calculator</a>
+      <a href="#adc-tool">ADC Reading &rarr; Voltage</a>
+      <a href="#pwm-tool">PWM Duty Cycle (analogWrite)</a>
+      <a href="#baud-tool">Serial Baud Rate Timing</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a class="mcu-link" href="#what-is-arduino">What Is Arduino</a>
+      <a class="mcu-link" href="#board-power">Board Anatomy &amp; Power</a>
+      <a class="sketch-link" href="#sketch-structure">The Sketch: setup() &amp; loop()</a>
+      <a class="mcu-link" href="#digital-io">Digital I/O</a>
+      <a class="mcu-link" href="#analog-input">Analog Input: analogRead()</a>
+      <a class="mcu-link" href="#analog-output">Analog Output: PWM &amp; analogWrite()</a>
+      <a class="sketch-link" href="#serial-monitor">Serial Monitor &amp; Debugging</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="mcu-link" href="#pullups-debounce">Pull-Ups &amp; Debouncing</a>
+      <a class="sketch-link" href="#interrupts">Interrupts</a>
+      <a class="sketch-link" href="#millis-vs-delay">Timers: millis() vs delay()</a>
+      <a class="mcu-link" href="#i2c-spi-arduino">I2C &amp; SPI on Arduino</a>
+      <a class="mcu-link" href="#driving-loads">Driving Motors &amp; Relays</a>
+      <a class="sketch-link" href="#libraries">Libraries &amp; the Ecosystem</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced</p>
+      <a class="sketch-link" href="#arduino-modbus">Arduino as a Modbus Device</a>
+      <a class="mcu-link" href="#memory-constraints">Memory Constraints</a>
+      <a class="mcu-link" href="#watchdog">Watchdog Timer &amp; Reliability</a>
+      <a class="sketch-link" href="#arduino-vs-pi-vs-plc">Arduino vs Raspberry Pi vs PLC</a>
+      <a class="mcu-link" href="#power-management">Power Management &amp; Sleep Modes</a>
+      <a class="mcu-link" href="#beyond-uno">Beyond the Uno</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Microcontroller Tutorial</p>
+      <h1>Arduino Concepts</h1>
+      <p class="lede">A guided path from the setup/loop execution model through digital and analog I/O, into interrupts, memory limits, and where Arduino actually fits next to the Raspberry Pi and PLC tutorials already in this Handbook. Copper-tagged sections are hardware/electrical; teal-tagged sections are sketch/software.</p>
+    </header>
+
+    <!-- ============ TOOLS ============ -->
+
+    <section class="topic" id="led-tool">
+      <h2>LED Resistor Calculator</h2>
+      <p>Arduino boards run <strong>5V</strong> logic &mdash; different from the Raspberry Pi's 3.3V, which is exactly why this calculator lets you pick the supply voltage. <code>R = (V_supply &minus; V_f) / I</code>.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="led-vsupply">Supply voltage, V</label>
+            <select id="led-vsupply">
+              <option value="5" selected>5V (Arduino Uno/Nano/Mega)</option>
+              <option value="3.3">3.3V (Arduino Due/some 3.3V boards)</option>
+            </select>
+          </div>
+          <div class="tool-field">
+            <label for="led-vf">LED forward voltage, V</label>
+            <input type="text" id="led-vf" value="1.8">
+          </div>
+          <div class="tool-field">
+            <label for="led-i">Target current, mA</label>
+            <input type="text" id="led-i" value="15">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="led-calc">Calculate</button>
+        <div class="tool-error" id="led-error"></div>
+        <div class="result-grid" id="led-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="adc-tool">
+      <h2>ADC Reading &rarr; Voltage</h2>
+      <p>The Uno's ADC is 10-bit (0&ndash;1023) against a default 5V reference: <code>voltage = raw / 1023 &times; V_ref</code>.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="adc-raw">analogRead() value (0&ndash;1023)</label>
+            <input type="text" id="adc-raw" value="614">
+          </div>
+          <div class="tool-field">
+            <label for="adc-vref">Reference voltage, V</label>
+            <input type="text" id="adc-vref" value="5">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="adc-calc">Calculate</button>
+        <div class="result-grid" id="adc-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="pwm-tool">
+      <h2>PWM Duty Cycle (analogWrite)</h2>
+      <p><code>analogWrite()</code> takes an 8-bit value, 0&ndash;255: <code>duty% = value / 255 &times; 100</code>.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="pwm-val">analogWrite() value (0&ndash;255)</label>
+            <input type="text" id="pwm-val" value="191">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="pwm-calc">Calculate</button>
+        <div class="result-grid" id="pwm-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="baud-tool">
+      <h2>Serial Baud Rate Timing</h2>
+      <p>At a given baud rate with standard 8N1 framing (1 start bit + 8 data bits + 1 stop bit = 10 bits per byte), this gives the time per bit and per byte &mdash; the same framing math behind Modbus RTU's own timing.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="baud-rate">Baud rate</label>
+            <input type="text" id="baud-rate" value="9600">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="baud-calc">Calculate</button>
+        <div class="result-grid" id="baud-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="what-is-arduino">
+      <h2>What Is Arduino</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>Arduino is a microcontroller board and its accompanying toolchain: a single chip running one program, with no operating system, no multitasking, and no filesystem &mdash; power it on and it runs your code, forever, from a fixed address, every time. This is the key structural difference from the Raspberry Pi tutorial in this Handbook: a Pi boots an OS and can run many programs at once with no real timing guarantee between them; an Arduino runs exactly one program with nothing else competing for the CPU, which is precisely why it's the more predictable (though far less capable) choice for tight, repetitive timing tasks.</p>
+      <p>The classic board, and the one this tutorial centres on, is the <strong>Uno</strong> (ATmega328P, 16MHz, 5V logic) &mdash; simple, well-documented, and the reference point almost every tutorial and library assumes unless stated otherwise.</p>
+    </section>
+
+    <section class="topic" id="board-power">
+      <h2>Board Anatomy &amp; Power</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>An Uno can be powered three ways: the USB connector (5V, also used for programming and the Serial Monitor), the barrel jack (7&ndash;12V recommended, regulated down on-board to 5V), or the Vin pin directly. All digital and analog I/O pins run at <strong>5V logic</strong> &mdash; the opposite of the Raspberry Pi's 3.3V-only GPIO, and the reason a sensor built for one platform sometimes needs a level shifter to safely talk to the other (see the Raspberry Pi tutorial's Level-Shift Calculator for that exact conversion in the 5V&rarr;3.3V direction).</p>
+    </section>
+
+    <section class="topic" id="sketch-structure">
+      <h2>The Sketch: setup() &amp; loop()</h2>
+      <div class="domain-box sketch"><span class="tag">Sketch</span></div>
+      <p>Every Arduino program ("sketch") has exactly two required functions:</p>
+      <pre>void setup() {
+  // runs once, at power-on or reset
+  pinMode(13, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // runs forever, back-to-back, as fast as the code allows
+  digitalWrite(13, HIGH);
+  delay(500);
+  digitalWrite(13, LOW);
+  delay(500);
+}</pre>
+      <figure class="diagram">
+        <svg viewBox="0 0 420 180" role="img" aria-label="Arduino execution model: on power up or reset, setup runs exactly once to configure pins and peripherals, then loop runs repeatedly forever, with each pass reading inputs and driving outputs, looping back to itself indefinitely with no operating system in between.">
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor">
+            <rect x="10" y="20" width="110" height="46" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="65" y="47" text-anchor="middle">Power on / reset</text>
+
+            <line x1="120" y1="43" x2="158" y2="43" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="158,43 150,39 150,47" fill="currentColor"/>
+
+            <rect x="160" y="20" width="100" height="46" rx="6" fill="none" stroke="var(--mcu)" stroke-width="1.8"/>
+            <text x="210" y="41" text-anchor="middle" fill="var(--mcu)">setup()</text>
+            <text x="210" y="55" text-anchor="middle" fill="var(--mcu)" font-size="9">runs once</text>
+
+            <line x1="260" y1="43" x2="298" y2="43" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="298,43 290,39 290,47" fill="currentColor"/>
+
+            <rect x="300" y="20" width="100" height="46" rx="6" fill="none" stroke="var(--sketch)" stroke-width="1.8"/>
+            <text x="350" y="41" text-anchor="middle" fill="var(--sketch)">loop()</text>
+            <text x="350" y="55" text-anchor="middle" fill="var(--sketch)" font-size="9">runs forever</text>
+
+            <path d="M 400 66 Q 400 120 350 120 Q 300 120 300 66" fill="none" stroke="var(--sketch)" stroke-width="1.5" marker-end="url(#arduinoarrow)"/>
+            <text x="350" y="140" text-anchor="middle" font-size="9">each pass: read inputs, decide, drive outputs</text>
+
+            <defs>
+              <marker id="arduinoarrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+                <polygon points="0,0 8,4 0,8" fill="var(--sketch)"/>
+              </marker>
+            </defs>
+          </g>
+        </svg>
+        <figcaption>No operating system sits between <code>loop()</code> and the hardware &mdash; this is both the source of Arduino's timing predictability and the reason a single slow instruction (a long <code>delay()</code>, a blocking sensor read) stalls literally everything else the sketch does, since there's nothing else running to pick up the slack.</figcaption>
+      </figure>
+    </section>
+
+    <section class="topic" id="digital-io">
+      <h2>Digital I/O</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>Three functions cover basic digital I/O: <code>pinMode(pin, INPUT/OUTPUT)</code> configures a pin's direction, <code>digitalWrite(pin, HIGH/LOW)</code> drives an output pin, and <code>digitalRead(pin)</code> reads an input pin's state. Every digital pin can source or sink up to <strong>20mA recommended, 40mA absolute maximum</strong> &mdash; and the <strong>total across all I/O pins combined is capped at 200mA absolute maximum</strong>. Both figures are meaningfully higher than the Raspberry Pi's roughly 16mA-per-pin/50mA-total guideline, one of the practical reasons Arduino can sometimes drive a small load (a single LED at full brightness, a small piezo buzzer) directly where a Pi would need a transistor stage regardless.</p>
+    </section>
+
+    <section class="topic" id="analog-input">
+      <h2>Analog Input: analogRead()</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>Unlike the Raspberry Pi &mdash; which, as covered in its own tutorial, has <em>no</em> built-in ADC at all &mdash; an Arduino Uno has six dedicated analog input pins (A0&ndash;A5) wired to a genuine on-chip 10-bit ADC. <code>analogRead(pin)</code> returns an integer from 0 to 1023, mapping linearly against the reference voltage (5V by default):</p>
+      <pre>voltage = analogRead(A0) / 1023.0 * 5.0;</pre>
+      <figure class="diagram">
+        <svg viewBox="0 0 480 170" role="img" aria-label="ADC quantization: a smoothly rising analog voltage ramp is shown alongside the digital output, which does not rise smoothly but steps upward in discrete increments, staying flat across a range of input voltages before jumping to the next integer code, illustrating that the 10 bit ADC can only represent 1024 distinct levels no matter how smoothly the real voltage changes.">
+          <g font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">
+            <line x1="40" y1="150" x2="460" y2="150" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="40" y1="150" x2="40" y2="15" stroke="currentColor" stroke-width="1.5"/>
+            <text x="35" y="12" text-anchor="end" font-size="10">code</text>
+            <text x="455" y="165" text-anchor="end" font-size="10">voltage &rarr;</text>
+
+            <line x1="40" y1="150" x2="460" y2="25" stroke="var(--mcu)" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <text x="440" y="40" fill="var(--mcu)" font-size="9">true analog voltage (smooth ramp)</text>
+
+            <polyline points="40,150 100,150 100,125 160,125 160,100 220,100 220,75 280,75 280,50 340,50 340,25 460,25"
+              fill="none" stroke="var(--sketch)" stroke-width="2"/>
+            <text x="150" y="112" fill="var(--sketch)" font-size="9">ADC output (discrete steps)</text>
+          </g>
+        </svg>
+        <figcaption>A 10-bit ADC can only ever report one of 1024 possible codes, so a perfectly smooth analog voltage still comes out as a staircase &mdash; any two voltages that fall within the same ~4.9mV step (5V/1023, the same resolution figure verified in the Electronics &amp; Instrumentation tutorial's ADC section) are indistinguishable to the sketch.</figcaption>
+      </figure>
+      <p><strong>Worked example:</strong> <code>analogRead()</code> returns 614 &rarr; <code>614/1023 &times; 5 = 3.00V</code>. Verify it, and the ADC's step size, in the calculator above.</p>
+    </section>
+
+    <section class="topic" id="analog-output">
+      <h2>Analog Output: PWM &amp; analogWrite()</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>The Uno has no true DAC either &mdash; "analog output" is actually PWM on six marked pins (<strong>3, 5, 6, 9, 10, 11</strong>, driven by three of the chip's internal timers), producing a fast on/off square wave whose average value mimics an analog level. <code>analogWrite(pin, value)</code> takes an 8-bit value, 0&ndash;255, directly setting that duty cycle &mdash; the same PWM concept, and the same averaging-by-switching-fast principle, as the PWM sections of both the PLC Learning and VFD tutorials, just at a much smaller scale.</p>
+      <p><strong>Worked example:</strong> <code>analogWrite(pin, 191)</code> gives a duty cycle of <code>191/255 &times; 100 &asymp; 74.9%</code> &mdash; roughly three-quarters brightness on an LED, or three-quarters speed on a small DC motor driven through an appropriate driver circuit.</p>
+    </section>
+
+    <section class="topic" id="serial-monitor">
+      <h2>Serial Monitor &amp; Debugging</h2>
+      <div class="domain-box sketch"><span class="tag">Sketch</span></div>
+      <p>With no screen or OS to print to, <code>Serial.begin(baud)</code> plus <code>Serial.print()</code>/<code>Serial.println()</code> is the primary debugging tool &mdash; text sent over the same USB connection used to upload the sketch, read live in the IDE's Serial Monitor. Matching the baud rate on both ends (sketch and monitor) is essential; a mismatch shows up as garbled text rather than a clean error.</p>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+
+    <div class="level-banner intermediate"><span class="n">&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="pullups-debounce">
+      <h2>Pull-Ups &amp; Debouncing</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>Exactly the same floating-input problem from the Raspberry Pi tutorial applies here: a button with nothing else connected reads unpredictably when open. <code>pinMode(pin, INPUT_PULLUP)</code> enables the chip's internal pull-up resistor in software, with no extra wiring &mdash; the pin reads HIGH when open, LOW when the button pulls it to ground.</p>
+      <p>A second, mechanical problem: a physical switch's contacts don't close cleanly &mdash; they bounce, producing several rapid open/close transitions over a few milliseconds that a fast-reading microcontroller sees as multiple presses. The simple fix is a short software delay after detecting a change (tens of milliseconds) before trusting the new state as stable; more advanced sketches track the time of the last change and only accept a new state once enough time has passed since the last transition.</p>
+    </section>
+
+    <section class="topic" id="interrupts">
+      <h2>Interrupts</h2>
+      <div class="domain-box sketch"><span class="tag">Sketch</span></div>
+      <p>Polling a pin inside <code>loop()</code> only notices a change whenever that line of code happens to run next &mdash; fine for a button, too slow for something that must be caught within microseconds (a fast-pulsing encoder, a precise timing reference). <code>attachInterrupt()</code> instead registers a function that the chip calls <em>immediately</em> when a specified pin changes, interrupting whatever <code>loop()</code> was doing at that exact moment.</p>
+      <p>Interrupt handlers should be kept extremely short &mdash; no <code>delay()</code>, minimal logic, usually just setting a flag or incrementing a counter for <code>loop()</code> to act on afterward &mdash; since nothing else on the chip, including other interrupts on most boards, can run until the handler returns.</p>
+    </section>
+
+    <section class="topic" id="millis-vs-delay">
+      <h2>Timers: millis() vs delay()</h2>
+      <div class="domain-box sketch"><span class="tag">Sketch</span></div>
+      <p><code>delay(ms)</code> blocks everything &mdash; literally nothing else in <code>loop()</code> runs until it returns, exactly the stall warned about in the setup/loop diagram above. <code>millis()</code> instead returns the number of milliseconds since the sketch started, letting the program check elapsed time without blocking:</p>
+      <pre>unsigned long lastBlink = 0;
+void loop() {
+  if (millis() - lastBlink >= 500) {
+    lastBlink = millis();
+    digitalWrite(13, !digitalRead(13));  // toggle
+  }
+  // ...other code keeps running every pass, unblocked...
+}</pre>
+      <p>This pattern &mdash; "non-blocking timing" &mdash; is the standard way to do several timed things at once on a single-threaded chip with no OS scheduler to share time for you.</p>
+    </section>
+
+    <section class="topic" id="i2c-spi-arduino">
+      <h2>I2C &amp; SPI on Arduino</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>The Uno exposes both buses on fixed pins: I2C on <strong>A4 (SDA) / A5 (SCL)</strong>, SPI on digital pins <strong>11 (MOSI), 12 (MISO), 13 (SCK)</strong> plus a chosen chip-select pin &mdash; different physical pins from the Raspberry Pi's assignments covered in its own tutorial, though the underlying protocols (and the <code>Wire</code> and <code>SPI</code> libraries wrapping them) work the same way conceptually on both platforms.</p>
+    </section>
+
+    <section class="topic" id="driving-loads">
+      <h2>Driving Motors &amp; Relays</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>Even at the Uno's higher 20&ndash;40mA-per-pin budget, that's still nowhere near enough to drive a relay coil, solenoid, or motor directly. The same pattern from the Electronics &amp; Instrumentation tutorial applies unchanged: a GPIO pin switches a transistor or MOSFET, which switches the actual load current from a separate, appropriately-rated supply &mdash; or, more commonly in practice, a ready-made relay or motor driver module that packages that transistor stage (and usually opto-isolation) onto one small board.</p>
+    </section>
+
+    <section class="topic" id="libraries">
+      <h2>Libraries &amp; the Ecosystem</h2>
+      <div class="domain-box sketch"><span class="tag">Sketch</span></div>
+      <p>Most practical Arduino work leans on libraries rather than raw register manipulation: <code>Servo</code> for RC servos (abstracting away the exact 1&ndash;2ms pulse-width math from the Raspberry Pi tutorial's servo section into a simple <code>myServo.write(angle)</code> call), <code>Wire</code> for I2C, <code>SPI</code> for SPI, and a vast third-party library ecosystem for specific sensors and modules, installable directly through the IDE's Library Manager. Reading a library's example sketches first is usually faster than reading its source &mdash; most document their intended usage clearly through working examples.</p>
+    </section>
+
+    <!-- ============ ADVANCED ============ -->
+
+    <div class="level-banner advanced"><span class="n">&#9679;</span> Advanced</div>
+
+    <section class="topic" id="arduino-modbus">
+      <h2>Arduino as a Modbus Device</h2>
+      <div class="domain-box sketch"><span class="tag">Sketch</span></div>
+      <p>With a cheap RS-485 transceiver module (or a direct USB-serial connection for Modbus TCP-over-a-gateway setups), an Arduino can act as either side of a Modbus conversation covered in this Handbook's Modbus tutorial: most commonly as a <strong>slave</strong> &mdash; the field device itself, exposing its sensor readings and relay states as registers/coils for a PLC or a Raspberry Pi master (see that tutorial's Python examples) to poll &mdash; using a library like <code>ModbusRTUSlave</code> to handle the frame parsing, CRC, and register mapping so the sketch itself only needs to update plain variables.</p>
+      <p>This is a natural division of labour across this Handbook's subjects: Arduino as the cheap, deterministic field-level sensor/actuator node; a Raspberry Pi or PLC as the master polling several of them over one RS-485 bus.</p>
+    </section>
+
+    <section class="topic" id="memory-constraints">
+      <h2>Memory Constraints</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>An Uno has just <strong>32KB of flash</strong> (program storage), <strong>2KB of SRAM</strong> (variables, at runtime), and <strong>1KB of EEPROM</strong> (small amounts of data that must survive a power cycle) &mdash; thousands of times less than even the smallest Raspberry Pi. This isn't a minor inconvenience: a handful of <code>String</code> objects doing repeated concatenation, or one oversized array, can exhaust 2KB of SRAM and cause silent, hard-to-diagnose crashes or corrupted data with no error message at all, since there's no OS underneath to catch the fault gracefully. Prefer fixed-size character arrays over <code>String</code> in memory-tight sketches, and watch flash usage (reported after every compile) as a program grows.</p>
+    </section>
+
+    <section class="topic" id="watchdog">
+      <h2>Watchdog Timer &amp; Reliability</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>The chip includes a hardware watchdog timer that resets the whole board if not periodically "fed" (acknowledged) by the running sketch &mdash; a safety net against a sketch hanging in an infinite loop or an unresponsive state with no human around to power-cycle it. Enabling it and remembering to feed it inside <code>loop()</code> is standard practice for anything deployed unattended, the same reliability goal the Raspberry Pi tutorial's systemd auto-restart section serves at the OS level instead.</p>
+    </section>
+
+    <section class="topic" id="arduino-vs-pi-vs-plc">
+      <h2>Arduino vs Raspberry Pi vs PLC</h2>
+      <div class="domain-box sketch"><span class="tag">Sketch</span></div>
+      <p>Three controller tutorials now sit in this Handbook, and the honest answer to "which one" depends entirely on the job:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Arduino</th><th>Raspberry Pi</th><th>PLC</th></tr></thead>
+          <tbody>
+            <tr><td>What it runs</td><td>one program, no OS</td><td>full Linux OS, many programs</td><td>firmware with a deterministic scan cycle</td></tr>
+            <tr><td>Timing predictability</td><td>high (nothing else competes for the CPU)</td><td>low&ndash;medium (OS scheduler jitter)</td><td>very high (purpose-built for it)</td></tr>
+            <tr><td>Compute &amp; flexibility</td><td>low</td><td>high (real OS, networking, storage)</td><td>low&ndash;medium, purpose-specific</td></tr>
+            <tr><td>Analog input</td><td>built-in ADC</td><td>none &mdash; needs external ADC</td><td>built-in on analog I/O modules</td></tr>
+            <tr><td>Safety-rated</td><td>no</td><td>no</td><td>yes, with certified safety PLCs/relays</td></tr>
+            <tr><td>Typical role here</td><td>cheap field sensor/actuator node</td><td>gateway, logger, dashboard, Modbus master</td><td>certified machine/process control</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>In practice these aren't exclusive choices &mdash; a realistic small automation project might use an Arduino out at the sensor, talking Modbus RTU back to a Raspberry Pi doing the logging and dashboard, with a PLC handling anything safety-critical, exactly the layered pattern both the Raspberry Pi and PLC tutorials gesture toward from their own sides.</p>
+    </section>
+
+    <section class="topic" id="power-management">
+      <h2>Power Management &amp; Sleep Modes</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>For battery-powered projects, the chip's various sleep modes can cut active current draw from tens of milliatts down to microamps between readings &mdash; waking periodically (via a timer interrupt) or on an external event (a button press, a sensor interrupt) to take a reading and go straight back to sleep. This is the kind of optimisation that matters enormously for a coin-cell sensor meant to run for months, and essentially never matters for a USB-powered or mains-powered project &mdash; know which category a given build falls into before spending time on it.</p>
+    </section>
+
+    <section class="topic" id="beyond-uno">
+      <h2>Beyond the Uno</h2>
+      <div class="domain-box mcu"><span class="tag">Hardware</span></div>
+      <p>The Uno is the reference board, but the same core concepts (setup/loop, digital/analog I/O, PWM, interrupts) carry over to the wider family: the <strong>Mega</strong> (more I/O pins, more memory, same 5V/16MHz core), the <strong>Nano</strong> (same chip, smaller footprint), and increasingly common third-party boards like the <strong>ESP32</strong> (WiFi/Bluetooth built in, 3.3V logic like the Pi rather than 5V, far more memory and clock speed) programmable through the same Arduino IDE and largely the same API, blurring the line between "simple microcontroller" and "small networked computer" that this whole tutorial otherwise draws fairly sharply.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+
+    <div class="level-banner basic" id="practice-exercises" style="margin-top:56px;"><span class="n">&#9679;</span> Practice Exercises</div>
+
+    <section class="topic">
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Size an LED resistor on Arduino's 5V rail</summary>
+        <div class="ex-body">
+          <p>A red LED (V<sub>f</sub> = 1.8V) is driven at 15mA from an Arduino digital pin's 5V output. What resistor value is needed?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>R = (5 &minus; 1.8) / 0.015 = 3.2/0.015 = 213.3&Omega;</code>. Round up to a standard value (220&Omega;). Compare this to the Raspberry Pi tutorial's version of the same calculation at 3.3V &mdash; a materially different resistor for the same LED and current.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Convert an ADC reading to a voltage</summary>
+        <div class="ex-body">
+          <p><code>analogRead(A0)</code> returns 614. What voltage does that represent, assuming the default 5V reference?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>614 / 1023 &times; 5 = 3.00V</code>.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Find a PWM duty cycle from an analogWrite value</summary>
+        <div class="ex-body">
+          <p><code>analogWrite(9, 191)</code> is called. What duty cycle does this produce?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>191 / 255 &times; 100 &asymp; 74.9%</code>.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Compute a byte's transmission time at a given baud rate</summary>
+        <div class="ex-body">
+          <p>At 9600 baud with standard 8N1 framing (10 bits per byte including start/stop), how long does it take to transmit one byte?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            Bit time = <code>1,000,000 / 9600 &asymp; 104.17&micro;s</code>. Byte time = <code>104.17 &times; 10 &asymp; 1041.7&micro;s &asymp; 1.04ms</code>. This exact framing math is also what sets the Modbus RTU tutorial's 3.5-character inter-frame silence timing.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Diagnose a memory-related crash</summary>
+        <div class="ex-body">
+          <p>A sketch that builds up long text messages using repeated <code>String</code> concatenation runs fine for a while, then starts behaving erratically with no compiler error and no obvious cause. What's the likely root cause, and what's the standard fix?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            Likely SRAM exhaustion/fragmentation from repeated dynamic <code>String</code> allocation on a chip with only 2KB of SRAM and no OS-level memory protection to catch it cleanly &mdash; it just silently corrupts. Standard fix: avoid repeated <code>String</code> concatenation in long-running code; use fixed-size character arrays and functions like <code>snprintf()</code> instead.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Choose the right controller for a mixed automation task</summary>
+        <div class="ex-body">
+          <p>A small project needs: (1) a sensor node out at a remote tank reporting level every few seconds over RS-485, (2) a central point logging all the readings and serving a web dashboard, and (3) a guaranteed-safe emergency shutoff if the tank level is critically high. Which controller from the Arduino/Raspberry Pi/PLC comparison table fits each role, and why?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            (1) <strong>Arduino</strong> &mdash; cheap, simple, perfectly adequate for reading one sensor and reporting it as a Modbus slave periodically. (2) <strong>Raspberry Pi</strong> &mdash; needs real compute, storage, and networking for logging and a web dashboard, none of which Arduino can do and none of which needs PLC-grade determinism. (3) <strong>PLC</strong> (with certified safety I/O) &mdash; the only one of the three actually rated for a safety-critical shutoff function, exactly as the PLC tutorial's Safety Interlocking section and this tutorial's comparison table both emphasise.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  function num(id){ var v = document.getElementById(id).value.trim(); return v === '' ? null : parseFloat(v); }
+
+  // ---------- LED resistor ----------
+  document.getElementById('led-calc').addEventListener('click', function(){
+    var vsupply = parseFloat(document.getElementById('led-vsupply').value);
+    var vf = num('led-vf'), iMa = num('led-i');
+    var err = document.getElementById('led-error'); err.textContent = '';
+    if (vf===null || iMa===null || iMa<=0){ err.textContent = 'Enter valid values.'; return; }
+    if (vf >= vsupply){ err.textContent = 'LED forward voltage must be below the supply voltage.'; return; }
+    var i = iMa/1000;
+    var r = (vsupply-vf)/i;
+    var out = document.getElementById('led-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Resistor needed</div><div class="r-value">' + r.toPrecision(5).replace(/\.?0+$/,'') + ' &#937;</div></div>';
+  });
+
+  // ---------- ADC ----------
+  document.getElementById('adc-calc').addEventListener('click', function(){
+    var raw = num('adc-raw'), vref = num('adc-vref');
+    if (raw===null || vref===null) return;
+    var voltage = raw/1023*vref;
+    var step = vref/1023;
+    var out = document.getElementById('adc-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Voltage</div><div class="r-value">' + voltage.toPrecision(5).replace(/\.?0+$/,'') + ' V</div></div>' +
+      '<div class="result-card"><div class="r-label">Step size</div><div class="r-value">' + (step*1000).toFixed(2) + ' mV</div></div>';
+  });
+
+  // ---------- PWM ----------
+  document.getElementById('pwm-calc').addEventListener('click', function(){
+    var val = num('pwm-val');
+    if (val===null) return;
+    var duty = val/255*100;
+    var out = document.getElementById('pwm-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Duty cycle</div><div class="r-value">' + duty.toFixed(2) + '%</div></div>';
+  });
+
+  // ---------- Baud timing ----------
+  document.getElementById('baud-calc').addEventListener('click', function(){
+    var baud = num('baud-rate');
+    if (baud===null || baud<=0) return;
+    var bitUs = 1e6/baud;
+    var byteUs = bitUs*10;
+    var out = document.getElementById('baud-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Time per bit</div><div class="r-value">' + bitUs.toPrecision(5).replace(/\.?0+$/,'') + ' &micro;s</div></div>' +
+      '<div class="result-card"><div class="r-label">Time per byte (8N1)</div><div class="r-value">' + byteUs.toPrecision(5).replace(/\.?0+$/,'') + ' &micro;s</div></div>';
+  });
+
+  // ---------- In-page search ----------
+  var searchIndex = [];
+  document.querySelectorAll('section.topic[id]').forEach(function(sec){
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    searchIndex.push({ kind: 'Section', title: h2.textContent, id: sec.id, text: sec.textContent.toLowerCase() });
+  });
+  document.querySelectorAll('details.ex').forEach(function(ex, i){
+    var summary = ex.querySelector('summary');
+    var title = summary.textContent.replace(/^(Basic|Intermediate|Advanced)\s*/i, '').trim();
+    if (!ex.id) ex.id = 'ex-auto-' + i;
+    searchIndex.push({ kind: 'Exercise', title: title, id: ex.id, text: ex.textContent.toLowerCase(), isEx: true });
+  });
+
+  var input = document.getElementById('page-search-input');
+  var results = document.getElementById('page-search-results');
+
+  function renderResults(list){
+    if (list.length === 0){ results.innerHTML = '<div class="r-empty">No matches.</div>'; results.classList.add('open'); return; }
+    results.innerHTML = list.slice(0,12).map(function(r){
+      return '<a href="#' + r.id + '" data-id="' + r.id + '" data-ex="' + (r.isEx?'1':'0') + '"><span class="r-kind">' + r.kind + '</span>' + r.title + '</a>';
+    }).join('');
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', function(){
+    var q = input.value.trim().toLowerCase();
+    if (!q){ results.classList.remove('open'); return; }
+    var matches = searchIndex.filter(function(item){ return item.text.indexOf(q) !== -1; });
+    renderResults(matches);
+  });
+
+  results.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if (!a) return;
+    var isEx = a.dataset.ex === '1';
+    if (isEx){
+      e.preventDefault();
+      var id = a.dataset.id;
+      var el = document.getElementById(id);
+      if (el){
+        el.open = true;
+        setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); }, 30);
+      }
+      results.classList.remove('open');
+      input.value = '';
+    } else {
+      results.classList.remove('open');
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!results.contains(e.target) && e.target !== input){ results.classList.remove('open'); }
+  });
+})();
+</script>
