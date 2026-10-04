@@ -1,0 +1,745 @@
+<title>Raspberry Pi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef2f6; --panel:#ffffff; --ink:#16212c; --muted:#56687a;
+    --line:#d7e0e8; --line-soft:#e5ebf1;
+    --accent:#3a5a78; --accent-ink:#24415c; --accent-soft:#e1e9f0;
+    --hw:#b3701f; --hw-soft:#f6ead5; --hw-ink:#7a4c12;
+    --code:#1f7a8c; --code-soft:#dcedf0; --code-ink:#145561;
+    --code-bg:#121b24; --code-fg:#e6edf3;
+    --focus:#1f7a8c;
+    --good:#15713f; --good-soft:#dff1e6;
+    --warn:#96521a; --warn-soft:#f6e6d5;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+      --line:#2a3b4c; --line-soft:#1c2838;
+      --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+      --hw:#e0a04a; --hw-soft:#332410; --hw-ink:#f2cd94;
+      --code:#4fc0d4; --code-soft:#0f2b30; --code-ink:#9fe3ee;
+      --code-bg:#0a1016; --code-fg:#dde6ee;
+      --focus:#4fc0d4;
+      --good:#4cc488; --good-soft:#0f2a1e;
+      --warn:#e0a04a; --warn-soft:#332410;
+      --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1620; --panel:#162030; --ink:#e7edf3; --muted:#93a4b5;
+    --line:#2a3b4c; --line-soft:#1c2838;
+    --accent:#7ba6cc; --accent-ink:#c7dcee; --accent-soft:#1c2d3d;
+    --hw:#e0a04a; --hw-soft:#332410; --hw-ink:#f2cd94;
+    --code:#4fc0d4; --code-soft:#0f2b30; --code-ink:#9fe3ee;
+    --code-bg:#0a1016; --code-fg:#dde6ee;
+    --focus:#4fc0d4;
+    --good:#4cc488; --good-soft:#0f2a1e;
+    --warn:#e0a04a; --warn-soft:#332410;
+    --accent-fill:#3a5a78; --accent-fill-hover:#2d4760; --good-fill:#1a7f4b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  h1,h2,h3,h4{text-wrap:balance;font-weight:600;}
+  code, .mono{font-family:"IBM Plex Mono",monospace;}
+
+  .layout{display:flex;max-width:1180px;margin:0 auto;}
+  nav.side{
+    width:252px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;
+    overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--line);
+  }
+  nav.side .brand{font-weight:700;font-size:1.05rem;margin:0 8px 4px;}
+  nav.side .brand .sub{color:var(--muted);font-weight:400;font-size:.82rem;display:block;margin-top:2px;}
+
+  .nav-search{position:relative;margin:4px 8px 6px;}
+  .nav-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .nav-search input{
+    width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:.85rem;padding:8px 10px 8px 32px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .nav-search input:focus-visible{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px;}
+  .nav-search-results{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:360px;overflow-y:auto;z-index:50;display:none;
+  }
+  .nav-search-results.open{display:block;}
+  .nav-search-results a{
+    display:block;padding:9px 12px;text-decoration:none;color:var(--ink);font-size:.84rem;border-bottom:1px solid var(--line-soft);
+  }
+  .nav-search-results a:last-child{border-bottom:none;}
+  .nav-search-results a:hover, .nav-search-results a.sel{background:var(--line-soft);}
+  .nav-search-results .r-kind{
+    font-family:"IBM Plex Mono",monospace;font-size:.65rem;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);
+    display:block;margin-bottom:2px;
+  }
+  .nav-search-results .r-empty{padding:14px 12px;color:var(--muted);font-size:.83rem;}
+  nav.side .lvl{margin-top:22px;}
+  nav.side .lvl-title{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  nav.side a{
+    display:block;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.88rem;
+  }
+  nav.side a:hover{background:var(--line-soft);}
+  nav.side a.hw-link{border-left:3px solid var(--hw);padding-left:9px;}
+  nav.side a.code-link{border-left:3px solid var(--code);padding-left:9px;}
+
+  main{flex:1;min-width:0;padding:34px 40px 100px;max-width:860px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;}
+  main > header h1{font-size:2.1rem;margin:0 0 10px;}
+  main > header p.lede{color:var(--muted);font-size:1.02rem;max-width:62ch;margin:0 0 28px;}
+
+  .level-banner{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;margin:48px 0 20px;
+    font-size:.85rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;
+  }
+  .level-banner.basic{background:var(--good-soft);color:var(--good);}
+  .level-banner.intermediate{background:var(--warn-soft);color:var(--warn);}
+  .level-banner.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  .level-banner .n{font-size:1.1rem;}
+
+  section.topic{margin-bottom:40px;scroll-margin-top:20px;}
+  section.topic h2{font-size:1.45rem;margin:0 0 6px;}
+  section.topic h3{font-size:1.1rem;margin:28px 0 8px;}
+  section.topic p{margin:10px 0;max-width:68ch;}
+  section.topic ul, section.topic ol{max-width:66ch;padding-left:22px;}
+  section.topic li{margin:5px 0;}
+
+  .domain-box{border-left:4px solid var(--line);padding:4px 0 4px 18px;margin:16px 0;}
+  .domain-box.hw{border-left-color:var(--hw);}
+  .domain-box.code{border-left-color:var(--code);}
+  .domain-box .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .domain-box.hw .tag{background:var(--hw-soft);color:var(--hw-ink);}
+  .domain-box.code .tag{background:var(--code-soft);color:var(--code-ink);}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:14px 0;}
+  .table-wrap{overflow-x:auto;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--line-soft);font-weight:600;}
+  td code, td.mono{font-size:.85rem;}
+  tbody tr:nth-child(even){background:var(--line-soft);}
+
+  pre{
+    background:var(--code-bg);color:var(--code-fg);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.84rem;line-height:1.55;margin:14px 0;
+  }
+  p code, li code{background:var(--line-soft);padding:1px 6px;border-radius:4px;font-size:.88em;}
+
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem;max-width:66ch;}
+  .callout.tip{background:var(--good-soft);border-left:3px solid var(--good);}
+  .callout.warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+  .callout strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .callout.tip strong{color:var(--good);}
+  .callout.warn strong{color:var(--warn);}
+
+  .diagram{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .diagram svg{width:100%;height:auto;display:block;}
+  .diagram figcaption{margin-top:10px;color:var(--muted);font-size:.86rem;}
+
+  details.ex{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel);overflow:hidden;}
+  details.ex summary{
+    cursor:pointer;padding:12px 16px;font-weight:600;background:var(--line-soft);list-style:none;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  details.ex summary::-webkit-details-marker{display:none;}
+  details.ex summary::before{content:"\25B8 ";color:var(--accent);}
+  details.ex[open] summary::before{content:"\25BE ";}
+  details.ex .ex-level{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;flex:none;
+  }
+  details.ex .ex-level.basic{background:var(--good-soft);color:var(--good);}
+  details.ex .ex-level.intermediate{background:var(--warn-soft);color:var(--warn);}
+  details.ex .ex-level.advanced{background:var(--accent-soft);color:var(--accent-ink);}
+  details.ex .ex-body{padding:4px 18px 16px;}
+  details.ex .ex-body p{margin:8px 0;}
+  details.ex .answer{
+    margin-top:10px;padding:12px 14px;background:var(--good-soft);border-left:3px solid var(--good);border-radius:0 6px 6px 0;
+  }
+  details.ex .answer strong{display:block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--good);margin-bottom:5px;}
+
+  .tool-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:16px 0 28px;}
+  .tool-panel h3{margin-top:0;}
+  .tool-row{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;}
+  .tool-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px;}
+  .tool-field.wide{flex-basis:100%;}
+  .tool-field label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  }
+  .tool-field input, .tool-field select{
+    font-family:"IBM Plex Mono",monospace;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .tool-field input:focus-visible, .tool-field select:focus-visible{border-color:var(--focus);}
+  .tool-btn{
+    font-family:"IBM Plex Sans",sans-serif;font-size:.9rem;font-weight:600;padding:10px 20px;border-radius:8px;
+    border:none;background:var(--accent-fill);color:#fff;cursor:pointer;margin-top:4px;
+  }
+  .tool-btn:hover{background:var(--accent-fill-hover);}
+  .tool-output{margin-top:18px;}
+  .tool-error{color:var(--warn);font-size:.85rem;margin-top:8px;font-family:"IBM Plex Mono",monospace;}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;}
+  .result-card{background:var(--line-soft);border-radius:8px;padding:12px 14px;}
+  .result-card .r-label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .result-card .r-value{font-family:"IBM Plex Mono",monospace;font-size:1.15rem;font-weight:600;margin-top:4px;}
+
+  @media (max-width: 880px){
+    .layout{display:block;}
+    nav.side{position:relative;width:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    main{padding:24px 18px 80px;max-width:100%;}
+  }
+</style>
+
+<div class="layout">
+  <nav class="side">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;margin-bottom:14px;">&larr; Karthik's Handbook</a>
+    <p class="brand">Raspberry Pi<span class="sub">Basic &rarr; Advanced</span></p>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="page-search-input" placeholder="Search this page..." autocomplete="off">
+      <div class="nav-search-results" id="page-search-results"></div>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Tools</p>
+      <a href="#led-tool">GPIO LED Resistor Calculator</a>
+      <a href="#divider-tool">5V&rarr;3.3V Level-Shift Calculator</a>
+      <a href="#servo-tool">Servo Angle &harr; Pulse Width</a>
+      <a href="#pwm-tool">PWM Duty Cycle Calculator</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Basic</p>
+      <a class="hw-link" href="#what-is-pi">What Is a Raspberry Pi</a>
+      <a class="hw-link" href="#powering-booting">Powering &amp; Booting</a>
+      <a class="code-link" href="#headless-setup">First Boot &amp; Headless Setup</a>
+      <a class="hw-link" href="#gpio-fundamentals">GPIO Fundamentals: Pins, Voltage &amp; Current</a>
+      <a class="hw-link" href="#digital-output">Digital Output: Driving an LED</a>
+      <a class="hw-link" href="#digital-input">Digital Input: Reading a Button</a>
+      <a class="code-link" href="#python-gpio">Python on the Pi: GPIO Libraries</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Intermediate</p>
+      <a class="code-link" href="#pwm-basics">PWM on the Pi</a>
+      <a class="hw-link" href="#servo-control">Controlling a Servo</a>
+      <a class="hw-link" href="#i2c">I2C Communication</a>
+      <a class="hw-link" href="#spi">SPI Communication</a>
+      <a class="hw-link" href="#no-analog">The Pi Has No Analog Input</a>
+      <a class="hw-link" href="#serial-uart">Serial/UART &amp; RS-485</a>
+      <a class="hw-link" href="#relay-interfacing">Interfacing Relays Safely</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Advanced</p>
+      <a class="code-link" href="#pi-modbus-master">Raspberry Pi as a Modbus Master</a>
+      <a class="code-link" href="#systemd-services">Running Code Reliably: systemd</a>
+      <a class="code-link" href="#pi-vs-plc">Pi vs PLC: Real-Time Limitations</a>
+      <a class="code-link" href="#remote-security">Remote Access &amp; Security Basics</a>
+      <a class="code-link" href="#data-logging">Data Logging &amp; a Simple Dashboard</a>
+      <a class="hw-link" href="#hats">GPIO Expansion: HATs</a>
+    </div>
+
+    <div class="lvl">
+      <p class="lvl-title">Practice</p>
+      <a href="#practice-exercises">Practice Exercises</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">Single-Board Computer Tutorial</p>
+      <h1>Raspberry Pi</h1>
+      <p class="lede">A guided path from first boot through GPIO wiring, PWM, and the I2C/SPI buses, into using a Pi as a real automation controller &mdash; a Modbus master, a data logger, a bridge into everything else in this Handbook. Copper-tagged sections are hardware &amp; wiring; teal-tagged sections are software.</p>
+    </header>
+
+    <!-- ============ TOOLS ============ -->
+
+    <section class="topic" id="led-tool">
+      <h2>GPIO LED Resistor Calculator</h2>
+      <p>The Pi's GPIO pins output <strong>3.3V</strong>, not 5V &mdash; use this instead of a generic 5V Arduino-style calculation. <code>R = (3.3 &minus; V_f) / I</code>.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="led-vf">LED forward voltage, V</label>
+            <input type="text" id="led-vf" value="1.8">
+          </div>
+          <div class="tool-field">
+            <label for="led-i">Target current, mA</label>
+            <input type="text" id="led-i" value="8">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="led-calc">Calculate</button>
+        <div class="tool-error" id="led-error"></div>
+        <div class="result-grid" id="led-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="divider-tool">
+      <h2>5V&rarr;3.3V Level-Shift Calculator</h2>
+      <p>A 5V sensor output wired straight into a GPIO input can permanently damage it. Given a fixed R1, this finds the R2 needed to bring a 5V signal down to a safe 3.3V using a simple voltage divider.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="dv-vin">Sensor output voltage, V</label>
+            <input type="text" id="dv-vin" value="5">
+          </div>
+          <div class="tool-field">
+            <label for="dv-r1">R1 (top resistor), ohms</label>
+            <input type="text" id="dv-r1" value="10000">
+          </div>
+          <div class="tool-field">
+            <label for="dv-target">Target voltage, V</label>
+            <input type="text" id="dv-target" value="3.3">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="dv-calc">Calculate</button>
+        <div class="tool-error" id="dv-error"></div>
+        <div class="result-grid" id="dv-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="servo-tool">
+      <h2>Servo Angle &harr; Pulse Width</h2>
+      <p>Standard RC servos expect a pulse every 20ms (50Hz); the pulse's <em>width</em>, not its duty cycle, sets the commanded angle &mdash; typically 1ms&ndash;2ms spanning 0&deg;&ndash;180&deg; (exact endpoints vary slightly by servo model).</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="sv-angle">Angle, degrees (0&ndash;180)</label>
+            <input type="text" id="sv-angle" value="135">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="sv-calc">Angle &rarr; Pulse Width</button>
+        <div class="result-grid" id="sv-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section class="topic" id="pwm-tool">
+      <h2>PWM Duty Cycle Calculator</h2>
+      <p><code>duty% = pulse_width / period &times; 100</code>, where <code>period = 1/frequency</code>.</p>
+      <div class="tool-panel">
+        <div class="tool-row">
+          <div class="tool-field">
+            <label for="pw-freq">Frequency, Hz</label>
+            <input type="text" id="pw-freq" value="50">
+          </div>
+          <div class="tool-field">
+            <label for="pw-pulse">Pulse width, ms</label>
+            <input type="text" id="pw-pulse" value="1.5">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="pw-calc">Calculate</button>
+        <div class="result-grid" id="pw-output" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ============ BASIC ============ -->
+
+    <div class="level-banner basic"><span class="n">&#9679;</span> Basic</div>
+
+    <section class="topic" id="what-is-pi">
+      <h2>What Is a Raspberry Pi</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>A Raspberry Pi is a full single-board computer &mdash; it boots a real operating system (usually Linux-based Raspberry Pi OS), runs a general-purpose CPU, and has networking, USB, and a 40-pin GPIO header for hardware interfacing, all on a board roughly the size of a credit card. It sits in a different category from both the microcontrollers covered implicitly in the Electronics tutorial and the PLCs covered in the PLC Learning tutorial: more computing power and flexibility than either, but &mdash; critically &mdash; without a PLC's deterministic scan cycle or certified I/O, a distinction covered in full in Pi vs PLC below.</p>
+      <p>Good fits: data logging, dashboards, Modbus/network gateways, image processing, anything needing a real OS and real compute. Poor fits: anything safety-critical, or anything needing guaranteed microsecond-level timing &mdash; that's a microcontroller's or a PLC's job.</p>
+    </section>
+
+    <section class="topic" id="powering-booting">
+      <h2>Powering &amp; Booting</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>Modern Pi boards (4 and later) take power over USB-C and boot from a microSD card or USB storage; older boards use micro-USB power and SD only. Undersized power supplies are a frequent, under-diagnosed cause of random crashes and corrupted SD cards &mdash; use the official or an equivalently-rated supply for your specific board rather than whatever USB charger is closest to hand.</p>
+      <p>Raspberry Pi Imager (the official flashing tool) writes Raspberry Pi OS to the SD card or USB drive and can pre-configure hostname, SSH, WiFi, and a user account before first boot &mdash; the standard starting point for a headless install (see below), skipping the need to ever attach a monitor and keyboard at all.</p>
+    </section>
+
+    <section class="topic" id="headless-setup">
+      <h2>First Boot &amp; Headless Setup</h2>
+      <div class="domain-box code"><span class="tag">Software</span></div>
+      <p>A "headless" Pi runs with no monitor or keyboard attached, administered entirely over the network via SSH. With Imager's pre-configuration (enabling SSH and entering WiFi credentials before the first boot), the Pi comes up already reachable:</p>
+      <pre>ssh username@raspberrypi.local</pre>
+      <p>From there, <code>sudo raspi-config</code> is the standard menu-driven tool for everything else first-boot related: expanding the filesystem to use the full SD card, enabling I2C/SPI (both off by default &mdash; see those sections below), setting the locale/timezone, and changing the default password.</p>
+    </section>
+
+    <section class="topic" id="gpio-fundamentals">
+      <h2>GPIO Fundamentals: Pins, Voltage &amp; Current</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>The single most important electrical fact about the Pi: its GPIO pins run at <strong>3.3V logic and are not 5V tolerant</strong>. Applying 5V directly to a GPIO pin risks permanently damaging it &mdash; there's no built-in protection the way some other boards provide. Every 5V sensor or module needs a level shifter or voltage divider (see the Level-Shift tool above) before it ever touches a GPIO pin.</p>
+      <p>Current is limited too: a commonly cited guideline is roughly <strong>16mA maximum from any single pin</strong>, with the <strong>total across all GPIO pins combined kept under about 50mA</strong> &mdash; these numbers vary slightly by board revision, so treat them as a safe working rule rather than an exact spec. This is nowhere near enough to drive a relay coil, a motor, or anything beyond a small LED directly; anything bigger needs a transistor, MOSFET, or relay module driven <em>by</em> the GPIO pin rather than powered directly from it &mdash; precisely the transistor-as-switch pattern from the Electronics tutorial.</p>
+      <p>Pins are numbered two ways, and mixing them up is a common source of "wrong pin" bugs: <strong>BCM</strong> numbering refers to the Broadcom SoC's internal GPIO numbers (what most code uses, e.g. "GPIO17"); <strong>BOARD</strong> numbering is simply the physical pin position counting across the 40-pin header (1&ndash;40). Always check which scheme a library or tutorial is using before wiring.</p>
+      <div class="callout warn">
+        <strong>The one rule that prevents the most damage</strong>
+        Never connect a GPIO pin directly to anything that might be at 5V, and never try to drive anything beyond a small LED straight from a GPIO pin. Both mistakes are common, both are usually fatal to the board or the pin.
+      </div>
+    </section>
+
+    <section class="topic" id="digital-output">
+      <h2>Digital Output: Driving an LED</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>The canonical first circuit: GPIO pin &rarr; current-limiting resistor &rarr; LED &rarr; ground. Using the LED Resistor Calculator above with a typical red LED (V<sub>f</sub> &asymp; 1.8V) at a conservative 8mA from the Pi's 3.3V rail gives a resistor of about 187.5&Omega; &mdash; round up to the nearest standard value (220&Omega; is the usual safe, readily-available choice).</p>
+    </section>
+
+    <section class="topic" id="digital-input">
+      <h2>Digital Input: Reading a Button</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>A button wired between a GPIO pin and ground needs a defined state when <em>not</em> pressed, or the input floats and reads randomly. Two options: an external pull-up/pull-down resistor, or &mdash; far more common on the Pi &mdash; the SoC's own internal pull-up/pull-down resistors, enabled in software with no extra wiring at all. With an internal pull-up enabled, the pin reads HIGH when the button is open and LOW when it's pressed (pulled to ground) &mdash; inverted logic that trips up a lot of beginners expecting "pressed = HIGH."</p>
+    </section>
+
+    <section class="topic" id="python-gpio">
+      <h2>Python on the Pi: GPIO Libraries</h2>
+      <div class="domain-box code"><span class="tag">Software</span></div>
+      <p>Python is the default language for Pi GPIO work, with two common libraries: the lower-level <code>RPi.GPIO</code>, and the friendlier <code>gpiozero</code>, which wraps common components (LEDs, buttons, motors, sensors) as ready-made classes:</p>
+      <pre>from gpiozero import LED
+from time import sleep
+
+led = LED(17)   # BCM numbering
+while True:
+    led.on()
+    sleep(1)
+    led.off()
+    sleep(1)</pre>
+    </section>
+
+    <!-- ============ INTERMEDIATE ============ -->
+
+    <div class="level-banner intermediate"><span class="n">&#9679;</span> Intermediate</div>
+
+    <section class="topic" id="pwm-basics">
+      <h2>PWM on the Pi</h2>
+      <div class="domain-box code"><span class="tag">Software</span></div>
+      <p>Pulse Width Modulation switches a pin on and off rapidly, and the <em>fraction of time it's on</em> (duty cycle) determines the effective average output &mdash; used for LED dimming, DC motor speed (in combination with a driver, since GPIO current is far too low to drive a motor directly), and servo position (see below). Most GPIO pins support <strong>software PWM</strong> (timed in software, usable on any pin, with a little jitter); a small number of pins support <strong>hardware PWM</strong> (timed by dedicated silicon, far more precise) &mdash; check your specific board's pinout for which pins those are before relying on hardware PWM for anything timing-sensitive like a servo.</p>
+    </section>
+
+    <section class="topic" id="servo-control">
+      <h2>Controlling a Servo</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>A standard RC servo takes one PWM signal wire, plus power and ground, and expects a pulse every 20ms (50Hz) whose <em>width</em> &mdash; not duty cycle &mdash; sets its angle: roughly 1ms for one end of travel, 2ms for the other, 1.5ms for centre.</p>
+      <p><strong>Worked example:</strong> commanding 135&deg; with the common 1ms=0&deg;/2ms=180&deg; convention: <code>pulse = 1 + (135/180) = 1.75ms</code>. Verify it in the calculator above.</p>
+      <div class="callout warn">
+        <strong>Power the servo separately</strong>
+        A servo under any real load draws far more current than a GPIO pin can supply (or than the Pi's own 5V rail can comfortably provide for more than one servo). Power the servo from its own 5&ndash;6V supply, with only the signal wire and a shared ground going to the Pi &mdash; never try to run the servo's power from a GPIO pin.
+      </div>
+    </section>
+
+    <section class="topic" id="i2c">
+      <h2>I2C Communication</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>I2C is a two-wire bus &mdash; SDA (data) and SCL (clock) &mdash; letting multiple devices share the same two pins, each identified by its own address. On the Pi's 40-pin header, the primary I2C bus is fixed to <strong>GPIO2 (SDA, physical pin 3)</strong> and <strong>GPIO3 (SCL, physical pin 5)</strong>. It's disabled by default; enable it via <code>raspi-config</code> or by uncommenting it in <code>/boot/config.txt</code>, then confirm what's connected with:</p>
+      <pre>i2cdetect -y 1</pre>
+      <p>which scans the bus and prints a grid of addresses, showing exactly which devices respond &mdash; invaluable for confirming wiring before writing a single line of driver code.</p>
+    </section>
+
+    <section class="topic" id="spi">
+      <h2>SPI Communication</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>SPI is faster than I2C but uses more pins: MOSI (data out), MISO (data in), SCLK (clock), and one Chip Select line per device. The Pi's primary SPI bus uses <strong>GPIO10 (MOSI, pin 19)</strong>, <strong>GPIO9 (MISO, pin 21)</strong>, <strong>GPIO11 (SCLK, pin 23)</strong>, and <strong>GPIO8/GPIO7 (CE0/CE1, pins 24/26)</strong> for up to two devices on the one bus without extra wiring. Like I2C, it's off by default and enabled through <code>raspi-config</code>.</p>
+    </section>
+
+    <section class="topic" id="no-analog">
+      <h2>The Pi Has No Analog Input</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>Unlike most microcontrollers, <strong>no Raspberry Pi model has a built-in ADC</strong> &mdash; every GPIO pin is strictly digital, reading only HIGH or LOW. Any analog sensor (a potentiometer, a simple analog temperature sensor, anything not already speaking a digital protocol) needs an external ADC chip in between, almost always talking I2C or SPI.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 640 140" role="img" aria-label="Analog sensing path on a Raspberry Pi: physical quantity enters an analog sensor producing a continuous voltage, which goes into an external ADC chip connected over SPI or I2C, which outputs a digital value that the Pi's GPIO reads directly, since the Pi itself has no built in analog to digital converter.">
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor">
+            <rect x="10" y="40" width="110" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="65" y="60" text-anchor="middle">Analog</text>
+            <text x="65" y="74" text-anchor="middle">sensor</text>
+
+            <line x1="120" y1="65" x2="158" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="158,65 150,61 150,69" fill="currentColor"/>
+            <text x="139" y="55" text-anchor="middle" font-size="9">analog V</text>
+
+            <rect x="160" y="40" width="130" height="50" rx="6" fill="none" stroke="var(--hw)" stroke-width="1.8"/>
+            <text x="225" y="60" text-anchor="middle" fill="var(--hw)">External ADC</text>
+            <text x="225" y="74" text-anchor="middle" fill="var(--hw)" font-size="9">(SPI or I2C)</text>
+
+            <line x1="290" y1="65" x2="328" y2="65" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="328,65 320,61 320,69" fill="currentColor"/>
+            <text x="309" y="55" text-anchor="middle" font-size="9">digital</text>
+
+            <rect x="330" y="40" width="130" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="395" y="60" text-anchor="middle">Pi GPIO</text>
+            <text x="395" y="74" text-anchor="middle" font-size="9">(digital only)</text>
+          </g>
+        </svg>
+        <figcaption>A microcontroller like an Arduino can read a potentiometer directly on an analog pin; a Pi cannot &mdash; the ADC chip is not optional, it's a mandatory translation step. Common choices: the MCP3008 (8-channel, SPI) or the ADS1115 (4-channel, I2C, higher resolution) &mdash; the same analog-to-digital concepts from the Electronics &amp; Instrumentation tutorial's ADC section apply directly here.</figcaption>
+      </figure>
+    </section>
+
+    <section class="topic" id="serial-uart">
+      <h2>Serial/UART &amp; RS-485</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>The Pi's GPIO header includes a UART (GPIO14/15, TX/RX) for direct serial connections, but the far more common approach for field devices is a USB-to-RS485 adapter &mdash; simpler, electrically isolated from the Pi's own 3.3V domain, and exactly the setup used throughout the Modbus tutorial's Python examples. This is the Pi's on-ramp into industrial field buses: once it can open a serial port, it can speak Modbus RTU to anything on an RS-485 line.</p>
+    </section>
+
+    <section class="topic" id="relay-interfacing">
+      <h2>Interfacing Relays Safely</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>Switching mains-voltage or motor-level loads from a Pi always goes through a relay or solid-state relay module &mdash; never direct GPIO control of the load itself. A GPIO pin switches the relay's low-voltage control side; the relay's separate, physically isolated contacts do the actual high-voltage switching. Opto-isolated relay modules (the same isolation principle from the Electronics tutorial's Signal Conditioning section) add a further layer of protection, keeping a fault on the high-voltage side from ever reaching the Pi's GPIO pins at all.</p>
+    </section>
+
+    <!-- ============ ADVANCED ============ -->
+
+    <div class="level-banner advanced"><span class="n">&#9679;</span> Advanced</div>
+
+    <section class="topic" id="pi-modbus-master">
+      <h2>Raspberry Pi as a Modbus Master</h2>
+      <div class="domain-box code"><span class="tag">Software</span></div>
+      <p>With a USB-RS485 adapter, a Pi running Python can act as a full Modbus RTU master, polling exactly the kind of relay boards and 4&ndash;20mA transmitters covered in this Handbook's other subjects:</p>
+      <pre>import serial, time
+
+ser = serial.Serial("/dev/ttyUSB0", 9600, bytesize=8, parity="N", stopbits=1, timeout=0.5)
+
+READ_COILS = bytes.fromhex("01 01 00 01 00 04 6c 09")  # verified frame, see Modbus tutorial
+ser.write(READ_COILS)
+time.sleep(0.05)
+response = ser.read(8)
+print(response.hex())</pre>
+      <p>This is the same byte-level approach as the Modbus tutorial's worked examples &mdash; the Pi is simply the computer running the Python master instead of a desktop PC, with the advantage of being small and cheap enough to sit permanently next to the field equipment it's polling.</p>
+    </section>
+
+    <section class="topic" id="systemd-services">
+      <h2>Running Code Reliably: systemd</h2>
+      <div class="domain-box code"><span class="tag">Software</span></div>
+      <p>A script launched manually from a terminal stops the moment that terminal closes or the Pi reboots. For anything meant to run continuously &mdash; a Modbus polling loop, a dashboard server &mdash; wrap it as a <strong>systemd service</strong>, which starts automatically at boot and restarts automatically if the script crashes:</p>
+      <pre>[Unit]
+Description=Modbus polling service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/poll.py
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target</pre>
+      <p>Saved as <code>/etc/systemd/system/modbus-poll.service</code> and enabled with <code>sudo systemctl enable --now modbus-poll</code>, this is the standard way to turn a script into something that behaves like a real, unattended embedded application rather than something that quietly stops the first time the Pi reboots after a power blip.</p>
+    </section>
+
+    <section class="topic" id="pi-vs-plc">
+      <h2>Pi vs PLC: Real-Time Limitations</h2>
+      <div class="domain-box code"><span class="tag">Software</span></div>
+      <p>A standard Raspberry Pi runs a general-purpose Linux kernel, not a real-time operating system. That means the OS scheduler can, at any moment, briefly delay a running script to service something else &mdash; usually imperceptible, but enough jitter (typically single-digit milliseconds, occasionally more under load) that a Pi cannot guarantee the same scan-to-scan timing determinism a PLC's dedicated firmware does, as covered in the PLC Learning tutorial's scan cycle section. For data logging, dashboards, and Modbus polling, this jitter is irrelevant. For anything safety-related, or anything needing hard real-time guarantees (a fast closed PID loop, precise multi-axis motion coordination), it's a genuine limitation &mdash; and exactly the territory the PLC Learning tutorial's Safety Interlocking section already warned belongs on certified, purpose-built hardware, not general-purpose compute.</p>
+      <div class="callout warn">
+        <strong>Where this actually matters</strong>
+        A Pi reading a sensor once a second for a dashboard: jitter is irrelevant. A Pi trying to be the safety interlock for a machine, or to hit a hard timing deadline every single cycle without exception: use a PLC or a real-time-capable microcontroller instead.
+      </div>
+    </section>
+
+    <section class="topic" id="remote-security">
+      <h2>Remote Access &amp; Security Basics</h2>
+      <div class="domain-box code"><span class="tag">Software</span></div>
+      <p>A handful of habits separate a reasonably secure headless Pi from an easy target: change the default password immediately (a default-credential Pi exposed to the internet is found and compromised by automated scanners, typically within hours); prefer SSH key authentication over password login, disabling password auth entirely once a key is set up; keep the OS updated (<code>sudo apt update && sudo apt full-upgrade</code>); and never expose SSH directly to the open internet &mdash; use a VPN or SSH tunnel if remote access from outside the local network is genuinely needed.</p>
+    </section>
+
+    <section class="topic" id="data-logging">
+      <h2>Data Logging &amp; a Simple Dashboard</h2>
+      <div class="domain-box code"><span class="tag">Software</span></div>
+      <p>A natural next step once sensor data is flowing (whether from a direct GPIO/I2C/SPI sensor or a polled Modbus device) is persisting it &mdash; a lightweight SQLite database or even a plain CSV file for simple cases &mdash; and serving a small live view with a minimal web framework like Flask, reachable from any browser on the local network. This is the same sensor-to-dashboard pattern used throughout this Handbook's worked home-automation examples, just generalized: sense, log, display.</p>
+    </section>
+
+    <section class="topic" id="hats">
+      <h2>GPIO Expansion: HATs</h2>
+      <div class="domain-box hw"><span class="tag">Hardware</span></div>
+      <p>A HAT (Hardware Attached on Top) is a standardized add-on board that stacks directly onto the 40-pin header, identifying itself to the OS automatically via an onboard EEPROM so drivers and overlays load without manual configuration. This covers most common expansion needs &mdash; additional relays, ADCs, motor drivers, displays &mdash; without hand-wiring a breadboard, at the cost of less flexibility than wiring the equivalent chips individually.</p>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+
+    <div class="level-banner basic" id="practice-exercises" style="margin-top:56px;"><span class="n">&#9679;</span> Practice Exercises</div>
+
+    <section class="topic">
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Size an LED resistor for the Pi's 3.3V rail</summary>
+        <div class="ex-body">
+          <p>A red LED (V<sub>f</sub> = 1.8V) needs to be driven at a conservative 8mA from a Pi GPIO pin's 3.3V output. What resistor value is needed?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>R = (3.3 &minus; 1.8) / 0.008 = 1.5/0.008 = 187.5&Omega;</code>. Round up to the nearest standard value, typically 220&Omega;, confirmed in the calculator above.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level basic">Basic</span> Check a GPIO current budget</summary>
+        <div class="ex-body">
+          <p>Five LEDs are driven directly from five different GPIO pins, each at 8mA. Using the commonly cited ~50mA total GPIO current guideline, is this within budget?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>5 &times; 8mA = 40mA</code> total &mdash; under the ~50mA guideline, so this is fine, though it doesn't leave much headroom for anything else drawing from GPIO at the same time.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Find a servo pulse width for a given angle</summary>
+        <div class="ex-body">
+          <p>Using the common 1ms = 0&deg;, 2ms = 180&deg; convention, what pulse width commands a servo to 135&deg;?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>pulse = 1 + (135/180) &times; 1 = 1 + 0.75 = 1.75ms</code>.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level intermediate">Intermediate</span> Choose a level-shift divider resistor</summary>
+        <div class="ex-body">
+          <p>A 5V sensor output needs to be brought down to 3.3V for a GPIO input, using a divider with R1 = 10k&Omega;. What value of R2 is needed?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            From <code>Vout = Vin &times; R2/(R1+R2)</code>, rearranged: <code>R2 = Vout&times;R1/(Vin&minus;Vout) = 3.3&times;10000/(5&minus;3.3) &asymp; 19,412&Omega;</code> (&asymp;19.4k&Omega;). In practice, a common off-the-shelf pair like 10k&Omega;/20k&Omega; gives 3.33V &mdash; close enough to be safe, and widely used for exactly this reason.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Convert a servo pulse to a duty cycle percentage</summary>
+        <div class="ex-body">
+          <p>A servo signal runs at 50Hz (20ms period). What duty cycle percentage corresponds to a 1ms pulse (the 0&deg; end of travel)?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            <code>duty% = 1/20 &times; 100 = 5%</code>. Confirm it, along with the 1.5ms (7.5%) and 2ms (10%) cases, in the PWM Duty Cycle calculator above.
+          </div>
+        </div>
+      </details>
+
+      <details class="ex">
+        <summary><span class="ex-level advanced">Advanced</span> Choose a Modbus function code for a Pi-based poll</summary>
+        <div class="ex-body">
+          <p>A Pi running as a Modbus RTU master needs to read 2 holding registers, starting at address 0, from a slave at address 3. Referring back to the Modbus tutorial's function code reference, which function code is needed?</p>
+          <div class="answer">
+            <strong>Answer</strong>
+            Function code <strong>0x03</strong> (Read Holding Registers). The frame would begin <code>03 03 00 00 00 02 &hellip;</code> &mdash; slave address 03, function 03, starting address 0x0000, quantity 2, followed by a CRC-16.
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  function num(id){ var v = document.getElementById(id).value.trim(); return v === '' ? null : parseFloat(v); }
+
+  // ---------- LED resistor ----------
+  document.getElementById('led-calc').addEventListener('click', function(){
+    var vf = num('led-vf'), iMa = num('led-i');
+    var err = document.getElementById('led-error'); err.textContent = '';
+    if (vf===null || iMa===null || iMa<=0){ err.textContent = 'Enter valid values.'; return; }
+    var i = iMa/1000;
+    if (vf >= 3.3){ err.textContent = 'LED forward voltage must be below the 3.3V supply.'; return; }
+    var r = (3.3-vf)/i;
+    var out = document.getElementById('led-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Resistor needed</div><div class="r-value">' + r.toPrecision(5).replace(/\.?0+$/,'') + ' &#937;</div></div>' +
+      '<div class="result-card"><div class="r-label">Nearest standard</div><div class="r-value">round up</div></div>';
+  });
+
+  // ---------- Level-shift divider ----------
+  document.getElementById('dv-calc').addEventListener('click', function(){
+    var vin = num('dv-vin'), r1 = num('dv-r1'), target = num('dv-target');
+    var err = document.getElementById('dv-error'); err.textContent = '';
+    if (vin===null || r1===null || target===null || target>=vin){ err.textContent = 'Target voltage must be less than the sensor voltage.'; return; }
+    var r2 = (target*r1)/(vin-target);
+    var out = document.getElementById('dv-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">R2 needed</div><div class="r-value">' + r2.toPrecision(5).replace(/\.?0+$/,'') + ' &#937;</div></div>' +
+      '<div class="result-card"><div class="r-label">Actual Vout check</div><div class="r-value">' + (vin*r2/(r1+r2)).toFixed(3) + ' V</div></div>';
+  });
+
+  // ---------- Servo angle <-> pulse ----------
+  document.getElementById('sv-calc').addEventListener('click', function(){
+    var angle = num('sv-angle');
+    if (angle===null) return;
+    var pulse = 1 + (angle/180)*1;
+    var duty = pulse/20*100;
+    var out = document.getElementById('sv-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Pulse width</div><div class="r-value">' + pulse.toFixed(3) + ' ms</div></div>' +
+      '<div class="result-card"><div class="r-label">Duty cycle @50Hz</div><div class="r-value">' + duty.toFixed(2) + '%</div></div>';
+  });
+
+  // ---------- PWM duty cycle ----------
+  document.getElementById('pw-calc').addEventListener('click', function(){
+    var freq = num('pw-freq'), pulse = num('pw-pulse');
+    if (freq===null || pulse===null || freq<=0) return;
+    var periodMs = 1000/freq;
+    var duty = pulse/periodMs*100;
+    var out = document.getElementById('pw-output');
+    out.style.display = 'grid';
+    out.innerHTML =
+      '<div class="result-card"><div class="r-label">Period</div><div class="r-value">' + periodMs.toPrecision(5).replace(/\.?0+$/,'') + ' ms</div></div>' +
+      '<div class="result-card"><div class="r-label">Duty cycle</div><div class="r-value">' + duty.toFixed(2) + '%</div></div>';
+  });
+
+  // ---------- In-page search ----------
+  var searchIndex = [];
+  document.querySelectorAll('section.topic[id]').forEach(function(sec){
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    searchIndex.push({ kind: 'Section', title: h2.textContent, id: sec.id, text: sec.textContent.toLowerCase() });
+  });
+  document.querySelectorAll('details.ex').forEach(function(ex, i){
+    var summary = ex.querySelector('summary');
+    var title = summary.textContent.replace(/^(Basic|Intermediate|Advanced)\s*/i, '').trim();
+    if (!ex.id) ex.id = 'ex-auto-' + i;
+    searchIndex.push({ kind: 'Exercise', title: title, id: ex.id, text: ex.textContent.toLowerCase(), isEx: true });
+  });
+
+  var input = document.getElementById('page-search-input');
+  var results = document.getElementById('page-search-results');
+
+  function renderResults(list){
+    if (list.length === 0){ results.innerHTML = '<div class="r-empty">No matches.</div>'; results.classList.add('open'); return; }
+    results.innerHTML = list.slice(0,12).map(function(r){
+      return '<a href="#' + r.id + '" data-id="' + r.id + '" data-ex="' + (r.isEx?'1':'0') + '"><span class="r-kind">' + r.kind + '</span>' + r.title + '</a>';
+    }).join('');
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', function(){
+    var q = input.value.trim().toLowerCase();
+    if (!q){ results.classList.remove('open'); return; }
+    var matches = searchIndex.filter(function(item){ return item.text.indexOf(q) !== -1; });
+    renderResults(matches);
+  });
+
+  results.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if (!a) return;
+    var isEx = a.dataset.ex === '1';
+    if (isEx){
+      e.preventDefault();
+      var id = a.dataset.id;
+      var el = document.getElementById(id);
+      if (el){
+        el.open = true;
+        setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); }, 30);
+      }
+      results.classList.remove('open');
+      input.value = '';
+    } else {
+      results.classList.remove('open');
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!results.contains(e.target) && e.target !== input){ results.classList.remove('open'); }
+  });
+})();
+</script>
