@@ -1,5 +1,5 @@
 // Karthik's Handbook service worker — cache-first, offline shell.
-const CACHE = 'karthik-handbook-1c93e5a8c1';
+const CACHE = 'karthik-handbook-8c210409fa';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
